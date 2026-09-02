@@ -1,7 +1,36 @@
+# ---- 依赖 ----
 node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- 构建产物 ----
 dist/
+build/
+*.tsbuildinfo
+vite.config.ts.timestamp-*.mjs
+
+# ---- 本地测试产物 ----
 .smoke/
 .smoke-text/
+coverage/
+
+# ---- Cloudflare / 部署缓存 ----
+.wrangler/
+wrangler.toml.local
+wrangler.toml.dev.vars
+
+# ---- 环境变量与本地配置（含敏感信息，务必忽略）----
+.env
+.env.*
+!.env.example
 *.local
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
-vite.config.ts.timestamp-*.mjs
+Thumbs.db
