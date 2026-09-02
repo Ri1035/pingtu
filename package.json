@@ -1,0 +1,29 @@
+{
+  "name": "merge-image",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "纯本地、无后端的在线图片合并 / 拼图编辑器（mergeimage.org 复刻版）",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "check:layouts": "node scripts/check-layouts.mjs",
+    "samples": "node scripts/make-samples.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^0.469.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.11"
+  }
+}
