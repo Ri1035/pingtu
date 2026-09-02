@@ -117,3 +117,39 @@ export interface CellRect {
   w: number
   h: number
 }
+
+/**
+ * 素材库中的一条素材（Asset）。
+ * 与拼图里的 PhotoItem 不同：素材是**持久化**资源，
+ * 存储在本机 IndexedDB（未来可切换云端后端），可反复加入拼图。
+ */
+export interface AssetItem {
+  id: string
+  /** 素材名（上传时的文件名，或修图产物自动命名） */
+  name: string
+  /** 原始文件的 Blob，用于导出 / 再次编辑 */
+  blob: Blob
+  /** 预览小图 dataURL（网格缩略图用） */
+  thumb: string
+  /** 原始像素宽高 */
+  width: number
+  height: number
+  /** 字节数 */
+  size: number
+  /** 创建时间戳（ms） */
+  createdAt: number
+  /** 来源标记：'upload' 用户上传 / 'edited' 修图产物 */
+  origin: 'upload' | 'edited'
+}
+
+/**
+ * 贴纸库中的一枚贴纸。
+ * 首版内置一组 emoji / 简单图形，用户可缩放旋转叠加到素材上。
+ */
+export interface StickerItem {
+  id: string
+  /** 贴纸内容：emoji 字符或内置 SVG 的关键字 */
+  glyph: string
+  /** 是否为 emoji（决定字体渲染方式） */
+  isEmoji: boolean
+}

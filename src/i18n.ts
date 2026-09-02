@@ -14,6 +14,7 @@ const zh: Record<string, Value> = {
   tabStyle: '样式',
   tabText: '文字',
   tabExport: '导出',
+  tabAssets: '素材库',
 
   langSwitch: 'English',
   newProject: '新建',
@@ -92,6 +93,29 @@ const zh: Record<string, Value> = {
   textHint: '在画布上拖拽文字可调整位置',
   fontDetecting: '正在检测系统字体…',
   noFontDetected: '未检测到额外字体，将使用系统默认字体',
+
+  // —— 素材库 ——
+  assetUpload: '上传素材',
+  assetUploadHint: '支持多选，素材仅保存在本机浏览器（可反复使用）',
+  assetLoading: '正在加载素材…',
+  assetEmpty: '素材库还是空的',
+  assetEditHint: '编辑素材',
+  assetAddToCollage: '加入拼图',
+  assetEdited: '已编辑',
+  assetEditSave: '保存为新素材',
+  assetEditNewText: '双击修改文字',
+  assetEditAddText: '添加文字',
+  assetEditAddSticker: '添加贴纸',
+  assetEditSize: '大小',
+  assetSaveDone: '已保存到素材库',
+  assetDeleteConfirm: '删除该素材？',
+  cancel: '取消',
+  saving: '保存中…',
+  chipFree: '自由',
+  chip11: '1:1',
+  chip43: '4:3',
+  chip34: '3:4',
+  chip169: '16:9',
 }
 
 const en: Record<string, Value> = {
@@ -102,6 +126,7 @@ const en: Record<string, Value> = {
   tabStyle: 'Style',
   tabText: 'Text',
   tabExport: 'Export',
+  tabAssets: 'Library',
 
   langSwitch: '中文',
   newProject: 'New',
@@ -180,6 +205,29 @@ const en: Record<string, Value> = {
   textHint: 'Drag text on the canvas to reposition it',
   fontDetecting: 'Detecting system fonts…',
   noFontDetected: 'No extra fonts found — using system defaults',
+
+  // —— Asset library ——
+  assetUpload: 'Upload asset',
+  assetUploadHint: 'Multi-select supported. Assets stay in this browser and can be reused',
+  assetLoading: 'Loading assets…',
+  assetEmpty: 'Your asset library is empty',
+  assetEditHint: 'Edit asset',
+  assetAddToCollage: 'Add to collage',
+  assetEdited: 'Edited',
+  assetEditSave: 'Save as new asset',
+  assetEditNewText: 'Double-click to edit text',
+  assetEditAddText: 'Add text',
+  assetEditAddSticker: 'Add sticker',
+  assetEditSize: 'Size',
+  assetSaveDone: 'Saved to library',
+  assetDeleteConfirm: 'Delete this asset?',
+  cancel: 'Cancel',
+  saving: 'Saving…',
+  chipFree: 'Free',
+  chip11: '1:1',
+  chip43: '4:3',
+  chip34: '3:4',
+  chip169: '16:9',
 }
 
 const DICTS: Record<Lang, Record<string, Value>> = { zh, en }

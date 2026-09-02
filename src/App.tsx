@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { LayoutGrid, SlidersHorizontal, Download, Type } from 'lucide-react'
+import { LayoutGrid, SlidersHorizontal, Download, Type, Library } from 'lucide-react'
 import { I18nContext, LANG_STORAGE_KEY, makeI18n, useI18n, type Lang } from './i18n'
 import { useCollage } from './hooks/useCollage'
+import { useAssets } from './hooks/useAssets'
 import { TopBar } from './components/TopBar'
 import { LayoutPanel } from './components/LayoutPanel'
 import { StylePanel } from './components/StylePanel'
@@ -9,10 +10,11 @@ import { TextPanel } from './components/TextPanel'
 import { ExportPanel } from './components/ExportPanel'
 import { CollageStage } from './components/CollageStage'
 import { PhotoTray } from './components/PhotoTray'
+import { AssetPanel } from './components/AssetPanel'
 import { buildFilename, downloadBlob, renderToBlob, supportsWebp } from './lib/export'
 import { ACCEPT_ATTR } from './lib/image'
 
-type Tab = 'layout' | 'style' | 'text' | 'export'
+type Tab = 'layout' | 'style' | 'text' | 'export' | 'assets'
 
 export function App() {
   const [lang, setLangState] = useState<Lang>(() => {
@@ -50,6 +52,7 @@ export function App() {
 function Editor() {
   const { t, lang, setLang } = useI18n()
   const store = useCollage()
+  const assetStore = useAssets()
 
   const [tab, setTab] = useState<Tab>('layout')
   const [busy, setBusy] = useState(false)
@@ -149,7 +152,16 @@ function Editor() {
     { key: 'style', label: t('tabStyle'), icon: SlidersHorizontal },
     { key: 'text', label: t('tabText'), icon: Type },
     { key: 'export', label: t('tabExport'), icon: Download },
+    { key: 'assets', label: t('tabAssets'), icon: Library },
   ]
+
+  /** 素材库「加入拼图」：把素材文件追加到图片队列末尾 */
+  const handleAddAssetToCollage = useCallback(
+    (file: File) => {
+      void store.addFiles([file])
+    },
+    [store],
+  )
 
   return (
     <div className="app">
@@ -184,6 +196,7 @@ function Editor() {
             {tab === 'export' && (
               <ExportPanel store={store} busy={busy} lastResult={lastResult} onExport={handleExport} />
             )}
+            {tab === 'assets' && <AssetPanel assetStore={assetStore} onAddFileToCollage={handleAddAssetToCollage} />}
           </div>
         </aside>
 
