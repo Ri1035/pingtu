@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.smoke/
+.smoke-text/
+*.local
+.DS_Store
+vite.config.ts.timestamp-*.mjs

@@ -1,0 +1,211 @@
+import { createContext, useContext } from 'react'
+
+export type Lang = 'zh' | 'en'
+
+/** 文案值：普通字符串，或带一个数字参数的函数 */
+type Value = string | ((n: number) => string)
+
+/** 中文词表（也是 key 的唯一来源） */
+const zh: Record<string, Value> = {
+  appTitle: '拼图编辑器',
+  appTagline: '本地处理 · 图片不上传',
+
+  tabLayout: '布局',
+  tabStyle: '样式',
+  tabText: '文字',
+  tabExport: '导出',
+
+  langSwitch: 'English',
+  newProject: '新建',
+  privacy: '图片全程在浏览器本地处理，不会上传到任何服务器',
+
+  imageCount: '图片数量',
+  imageCountHint: '选择要合并的图片张数（1 ~ 16）',
+  layoutPreset: '布局',
+  layoutCount: (n) => `${n} 种布局`,
+  currentLayout: '当前布局',
+
+  canvasRatio: '画布比例',
+  ratioAuto: '自动',
+  margin: '边距',
+  gap: '间距',
+  radius: '圆角',
+  background: '背景色',
+  transparent: '透明背景',
+  transparentHint: '透明背景需导出 PNG 或 WebP；JPEG 会自动填充背景色',
+  resetStyle: '恢复默认',
+
+  exportFormat: '格式',
+  exportQuality: '质量',
+  exportWidth: '导出宽度',
+  widthCustom: '自定义',
+  outputSize: '输出尺寸',
+  exportHint: '提高宽度可获得更清晰的成图，文件体积也会随之变大',
+  download: '下载图片',
+  downloading: '正在生成…',
+  lastExport: '上次导出',
+
+  addPhotos: '添加图片',
+  addMore: '继续添加',
+  dragHint: '拖拽 / 粘贴 / 点击上传',
+  photoTray: '图片',
+  autoFill: '自动填充',
+  clearAll: '清空',
+  unusedPhotos: (n) => `还有 ${n} 张未放入画布`,
+  notEnoughPhotos: (n) => `还差 ${n} 张图片`,
+  allFilled: '已全部填满',
+  emptyState: '先添加几张图片吧',
+
+  clickToAdd: '点击上传',
+  replace: '替换',
+  remove: '删除',
+  rotateLeft: '向左旋转',
+  rotateRight: '向右旋转',
+  flipH: '水平镜像',
+  flipV: '垂直镜像',
+  resetView: '复位构图',
+  moveLeft: '前移',
+  moveRight: '后移',
+  swapHint: '再点另一个格子即可交换两张图片',
+  panHint: '拖拽可平移，滚轮可缩放',
+
+  zoom: '缩放',
+  unsupportedWebp: '当前浏览器不支持 WebP，已自动改用 PNG',
+  exportFailed: '导出失败',
+  tooManyPhotos: (n) => `最多支持 ${n} 张图片`,
+  addFailed: (n) => `有 ${n} 个文件无法导入`,
+  fillFromTray: '按当前图片顺序填入画布',
+
+  addText: '添加文字',
+  textList: '文字图层',
+  noText: '还没有文字，点击上方按钮添加',
+  textContent: '文字内容',
+  textContentPlaceholder: '输入要叠加的文字…',
+  textFont: '字体',
+  textSize: '字号',
+  textColor: '颜色',
+  textBold: '粗体',
+  textItalic: '斜体',
+  textRotation: '旋转',
+  textDelete: '删除文字',
+  textHint: '在画布上拖拽文字可调整位置',
+  fontDetecting: '正在检测系统字体…',
+  noFontDetected: '未检测到额外字体，将使用系统默认字体',
+}
+
+const en: Record<string, Value> = {
+  appTitle: 'Collage Editor',
+  appTagline: 'Runs locally · never uploaded',
+
+  tabLayout: 'Layout',
+  tabStyle: 'Style',
+  tabText: 'Text',
+  tabExport: 'Export',
+
+  langSwitch: '中文',
+  newProject: 'New',
+  privacy: 'Everything happens in your browser — images are never uploaded',
+
+  imageCount: 'Photo count',
+  imageCountHint: 'Pick how many photos to merge (1 – 16)',
+  layoutPreset: 'Layout',
+  layoutCount: (n) => `${n} layouts`,
+  currentLayout: 'Current layout',
+
+  canvasRatio: 'Canvas ratio',
+  ratioAuto: 'Auto',
+  margin: 'Margin',
+  gap: 'Spacing',
+  radius: 'Radius',
+  background: 'Background',
+  transparent: 'Transparent',
+  transparentHint: 'Transparency needs PNG or WebP; JPEG fills the background color',
+  resetStyle: 'Reset',
+
+  exportFormat: 'Format',
+  exportQuality: 'Quality',
+  exportWidth: 'Width',
+  widthCustom: 'Custom',
+  outputSize: 'Output size',
+  exportHint: 'A larger width means a sharper image and a bigger file',
+  download: 'Download',
+  downloading: 'Rendering…',
+  lastExport: 'Last export',
+
+  addPhotos: 'Add photos',
+  addMore: 'Add more',
+  dragHint: 'Drag, paste or click to upload',
+  photoTray: 'Photos',
+  autoFill: 'Auto fill',
+  clearAll: 'Clear',
+  unusedPhotos: (n) => `${n} photo(s) not on canvas`,
+  notEnoughPhotos: (n) => `${n} more photo(s) needed`,
+  allFilled: 'All slots filled',
+  emptyState: 'Add a few photos to get started',
+
+  clickToAdd: 'Click to upload',
+  replace: 'Replace',
+  remove: 'Remove',
+  rotateLeft: 'Rotate left',
+  rotateRight: 'Rotate right',
+  flipH: 'Flip horizontal',
+  flipV: 'Flip vertical',
+  resetView: 'Reset framing',
+  moveLeft: 'Move earlier',
+  moveRight: 'Move later',
+  swapHint: 'Click another cell to swap the two photos',
+  panHint: 'Drag to pan · scroll to zoom',
+
+  zoom: 'Zoom',
+  unsupportedWebp: 'WebP is not supported here — falling back to PNG',
+  exportFailed: 'Export failed',
+  tooManyPhotos: (n) => `Up to ${n} photos supported`,
+  addFailed: (n) => `${n} file(s) could not be imported`,
+  fillFromTray: 'Fill the canvas in the current photo order',
+
+  addText: 'Add text',
+  textList: 'Text layers',
+  noText: 'No text yet — click the button above to add',
+  textContent: 'Text',
+  textContentPlaceholder: 'Type text to overlay…',
+  textFont: 'Font',
+  textSize: 'Size',
+  textColor: 'Color',
+  textBold: 'Bold',
+  textItalic: 'Italic',
+  textRotation: 'Rotate',
+  textDelete: 'Delete text',
+  textHint: 'Drag text on the canvas to reposition it',
+  fontDetecting: 'Detecting system fonts…',
+  noFontDetected: 'No extra fonts found — using system defaults',
+}
+
+const DICTS: Record<Lang, Record<string, Value>> = { zh, en }
+
+export interface I18n {
+  lang: Lang
+  /** 取文案，支持形如 t('layoutCount', 12) 的动态参数 */
+  t: (key: string, arg?: number) => string
+  setLang: (lang: Lang) => void
+}
+
+export function makeI18n(lang: Lang, setLang: (l: Lang) => void): I18n {
+  const dict = DICTS[lang] ?? DICTS.zh
+  const t = (key: string, arg?: number): string => {
+    const value = dict[key]
+    if (typeof value === 'function') return value(arg ?? 0)
+    if (typeof value === 'string') return value
+    return DICTS.zh[key] as string
+  }
+  return { lang, t, setLang }
+}
+
+const fallback = makeI18n('zh', () => {})
+
+export const I18nContext = createContext<I18n>(fallback)
+
+export function useI18n(): I18n {
+  return useContext(I18nContext)
+}
+
+export const LANG_STORAGE_KEY = 'merge-image:lang'
