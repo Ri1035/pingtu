@@ -17,11 +17,13 @@
 | 单张构图：缩放 / 平移 / 旋转 / 镜像 | ✓ | ✓（含移动端捏合缩放） |
 | 悬浮工具条：替换 / 旋转 / 镜像 / 移除 | ✓ | ✓（额外含「填充/适应」切换） |
 | 点击交换两张图 | ✓ | ✓ |
-| 拖拽文件到画布 / 粘贴上传 | ✓ | ✓ |
+| 拖拽文件到画布 / 粘贴上传 | ✓ | ✓（v1.1.0：托盘区也支持拖拽批量） |
 | 点击添加按钮 → 系统文件管理器多选批量 | ✓ | ✓ |
 | 文字叠加图层（多图层） | – | **✓**（新建） |
 | 字体选择（系统可用字体） | – | **✓**（新建，Canvas 探测） |
 | 文字画布拖拽定位 / 选中 / 删除 | – | **✓**（新建） |
+| 素材库（本地持久化，可反复使用） | – | **✓**（v1.1.0 新建，IndexedDB） |
+| 素材修图（旋转/翻转/裁剪/文字/贴纸） | – | **✓**（v1.1.0 新建，保存为新素材） |
 | 导出格式 PNG / JPEG / WebP | ✓ | ✓ |
 | 导出分辨率：4K 自定义 | ✓ | ✓（1080 / 1600 / 2048 / 2560 / 3840 + 自定义） |
 | 质量调节（JPEG/WebP） | ✓ | ✓ |
@@ -46,14 +48,16 @@
 - **Canvas 2D** 渲染（预览和导出共用一套管线 → 真正的所见即所得）
 - **CSS Grid** 渲染布局缩略图（与真实渲染共用同一份布局数据）
 - **localStorage** 持久化样式与导出设置
-- 无任何后端，无任何第三方 UI 框架 → 产物仅 ~63KB gzip
+- **IndexedDB** 持久化素材库（存储抽象层预留云端接口）
+- 无任何后端，无任何第三方 UI 框架 → 产物仅 ~72KB gzip
 
 ## 🏗 代码结构
 
 ```
 src/
 ├── App.tsx · main.tsx · i18n.ts · types.ts · index.css
-├── hooks/useCollage.ts           # 状态管理（图片顺序 = 唯一数据源）
+├── hooks/useCollage.ts           # 拼图状态管理（图片顺序 = 唯一数据源）
+├── hooks/useAssets.ts            # 素材库状态管理（列表 / 上传 / 编辑保存 / 删除）
 ├── lib/
 │   ├── official-layouts.ts       # 官方布局矩阵库（145 套，数字矩阵格式）
 │   ├── layouts.ts                # 矩阵 → GridLayout 转换器 + 校验器
@@ -61,15 +65,19 @@ src/
 │   ├── render.ts                 # Canvas 2D 渲染引擎
 │   ├── export.ts                 # 导出 PNG / JPEG / WebP
 │   ├── image.ts                  # 文件解码 / 缩略图生成
-│   └── fonts.ts                  # 系统字体探测（Canvas 测量法）
+│   ├── fonts.ts                  # 系统字体探测（Canvas 测量法）
+│   ├── assetStore.ts             # 素材存储抽象层（IndexedDB 实现，预留云接口）
+│   └── stickers.ts               # 内置 emoji 贴纸库（40 枚）
 └── components/
     ├── TopBar.tsx
     ├── LayoutPanel.tsx           # 数量 / 布局选择
     ├── StylePanel.tsx            # 比例 / 边距 / 间距 / 圆角 / 背景
-    ├── TextPanel.tsx             # 文字图层管理（新增）
+    ├── TextPanel.tsx             # 文字图层管理
     ├── ExportPanel.tsx           # 格式 / 质量 / 宽度
-    ├── CollageStage.tsx          # 画布 + 悬浮工具条
-    ├── PhotoTray.tsx             # 底部托盘
+    ├── CollageStage.tsx          # 画布 + 悬浮工具条（延迟消失机制）
+    ├── PhotoTray.tsx             # 底部托盘（可拖拽上传）
+    ├── AssetPanel.tsx            # 素材库页签（网格 + 上传 / 编辑 / 加入拼图）
+    ├── AssetEditor.tsx           # 素材修图编辑器（旋转 / 翻转 / 裁剪 / 文字 / 贴纸）
     └── ui/Controls.tsx           # Field / Slider / Segmented / Switch / NumberInput
 ```
 
