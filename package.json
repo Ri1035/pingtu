@@ -1,9 +1,21 @@
 {
-  "name": "merge-image",
+  "name": "pingtu",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "description": "纯本地、无后端的在线图片合并 / 拼图编辑器（mergeimage.org 复刻版）",
+  "keywords": [
+    "collage",
+    "photo-grid",
+    "image-merge",
+    "canvas",
+    "vite",
+    "react"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
