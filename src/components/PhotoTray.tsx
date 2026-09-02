@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Images, Sparkles, Trash2, Upload, X } from 'lucide-react'
 import { useI18n } from '../i18n'
 import type { CollageStore } from '../hooks/useCollage'
@@ -6,16 +6,47 @@ import type { CollageStore } from '../hooks/useCollage'
 interface Props {
   store: CollageStore
   onPickFiles: () => void
+  onFilesDropped: (files: FileList | File[]) => void
 }
 
-export function PhotoTray({ store, onPickFiles }: Props) {
+export function PhotoTray({ store, onPickFiles, onFilesDropped }: Props) {
   const { t } = useI18n()
   const { photos, slots, removePhoto, swapSlots, unusedCount, emptyCount, clearAll, setCount } = store
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [overIndex, setOverIndex] = useState<number | null>(null)
+  const [dropActive, setDropActive] = useState(false)
+  const dragDepth = useRef(0)
 
   return (
-    <div className="tray">
+    <div
+      className={`tray${dropActive ? ' is-drop-active' : ''}`}
+      onDragEnter={(e) => {
+        e.preventDefault()
+        // 仅外部文件拖入时显示高亮；托盘内图片排序（text/plain）不触发
+        const hasFiles = Array.from(e.dataTransfer?.types ?? []).includes('Files')
+        if (!hasFiles) return
+        dragDepth.current += 1
+        setDropActive(true)
+      }}
+      onDragOver={(e) => {
+        e.preventDefault()
+        const hasFiles = Array.from(e.dataTransfer?.types ?? []).includes('Files')
+        if (!hasFiles) return
+        e.dataTransfer.dropEffect = 'copy'
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault()
+        dragDepth.current = Math.max(0, dragDepth.current - 1)
+        if (dragDepth.current === 0) setDropActive(false)
+      }}
+      onDrop={(e) => {
+        e.preventDefault()
+        dragDepth.current = 0
+        setDropActive(false)
+        // 忽略托盘内图片拖拽排序（无文件拖入）
+        if (e.dataTransfer?.files?.length) onFilesDropped(e.dataTransfer.files)
+      }}
+    >
       <div className="tray-side">
         <button type="button" className="btn btn-primary" onClick={onPickFiles}>
           <Upload size={15} />

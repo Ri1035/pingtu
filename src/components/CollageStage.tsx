@@ -8,6 +8,7 @@ import {
   RotateCw,
   RefreshCw,
   Trash2,
+  Upload,
 } from 'lucide-react'
 import type { PhotoTransform, TextItem } from '../types'
 import { DEFAULT_TRANSFORM, computeRatio, drawCollage } from '../lib/render'
@@ -66,6 +67,30 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [zoomHint, setZoomHint] = useState<string | null>(null)
   const [isDropping, setIsDropping] = useState(false)
+
+  /**
+   * 悬浮菜单「延迟消失」机制：
+   * 鼠标从图片移向悬浮工具条时，路径上可能短暂离开画布区域。
+   * 若 onPointerLeave 立即清空 hoverIndex，工具条会在鼠标到达前被卸载（历史 bug）。
+   * 解法：离开时只启动 ~300ms 定时器；期间若鼠标进入工具条（onPointerEnter）则取消。
+   */
+  const hoverTimer = useRef<number | null>(null)
+  const cancelHoverTimer = useCallback(() => {
+    if (hoverTimer.current != null) {
+      window.clearTimeout(hoverTimer.current)
+      hoverTimer.current = null
+    }
+  }, [])
+  const scheduleClearHover = useCallback(() => {
+    cancelHoverTimer()
+    hoverTimer.current = window.setTimeout(() => {
+      setHoverIndex(null)
+      hoverTimer.current = null
+    }, 300)
+  }, [cancelHoverTimer])
+
+  // 卸载时清理定时器
+  useEffect(() => cancelHoverTimer, [cancelHoverTimer])
 
   // 拖拽平移手势状态
   const gesture = useRef<{
@@ -382,7 +407,16 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
     const g = gesture.current
     if (!g || g.pointerId !== e.pointerId) {
       const hover = indexAt(e.clientX, e.clientY)
-      if (hover !== hoverIndex) setHoverIndex(hover)
+      if (hover !== hoverIndex) {
+        if (hover !== null) {
+          // 移到某个格子上：立即定位并取消延迟清除
+          cancelHoverTimer()
+          setHoverIndex(hover)
+        } else {
+          // 移到空白处：延迟清除，留出移向悬浮工具条的时间窗
+          scheduleClearHover()
+        }
+      }
       return
     }
 
@@ -464,12 +498,15 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       }}
     >
       {/* 移出判定放在外层：工具栏是 canvas 的兄弟节点，
-          如果把 onPointerLeave 挂在 canvas 上，鼠标一移到工具栏上工具条就会消失 */}
+          但这里不能立即清空 hoverIndex —— 鼠标从图片移向工具栏时
+          会先经过 canvas 与工具栏之间的空隙触发 pointerleave，
+          若立即卸载工具栏，鼠标就永远点不到按钮（历史 bug）。
+          因此改为「延迟清除」：300ms 内进入工具栏即取消。 */}
       <div
         className="stage-inner"
         onPointerLeave={() => {
           gesture.current = null
-          setHoverIndex(null)
+          scheduleClearHover()
         }}
       >
         <canvas
@@ -486,9 +523,14 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
             className="slot-toolbar"
             style={{
               left: toolbarCell.x + toolbarCell.w / 2,
-              top: Math.max(4, toolbarCell.y - 8),
+              top: toolbarCell.y + 8,
             }}
-            onPointerEnter={() => setHoverIndex(toolbarIndex)}
+            onPointerEnter={() => {
+              // 进入工具栏：取消延迟清除，保持显示
+              cancelHoverTimer()
+              setHoverIndex(toolbarIndex)
+            }}
+            onPointerLeave={() => scheduleClearHover()}
           >
             {toolbarPhoto && toolbarTransform ? (
               <>
@@ -559,7 +601,15 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
         </span>
       </div>
 
-      {store.filledCount === 0 && <div className="stage-empty">{t('emptyState')}</div>}
+      {store.filledCount === 0 && (
+        <div className="stage-empty">
+          <button type="button" className="btn btn-primary btn-lg stage-empty-btn" onClick={() => onPickFiles()}>
+            <Upload size={16} />
+            {t('addPhotos')}
+          </button>
+          <div className="stage-empty-hint">{t('emptyStateHint')}</div>
+        </div>
+      )}
       {isDropping && <div className="drop-mask">{t('dragHint')}</div>}
     </div>
   )
