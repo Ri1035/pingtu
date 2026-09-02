@@ -219,6 +219,13 @@ select {
   flex: 0 0 34px;
 }
 
+/* 工具按钮激活态（翻转开关 / 面板开关） */
+.btn-icon.is-active {
+  background: var(--accent-soft);
+  border-color: #c7d9fb;
+  color: var(--accent);
+}
+
 .btn-lg {
   height: 40px;
   font-size: 14px;
@@ -1137,4 +1144,358 @@ select {
   .layout-grid {
     grid-template-columns: repeat(4, 1fr);
   }
+}
+
+/* ========================== 素材库 ========================== */
+
+.asset-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  flex: 1;
+}
+
+.asset-panel-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.asset-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--danger);
+  font-size: 12.5px;
+}
+
+.asset-grid-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.asset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding-bottom: 6px;
+}
+
+.asset-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.asset-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--border-strong);
+}
+
+.asset-thumb {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background:
+    linear-gradient(45deg, #eceff4 25%, transparent 25%, transparent 75%, #eceff4 75%),
+    linear-gradient(45deg, #eceff4 25%, transparent 25%, transparent 75%, #eceff4 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.asset-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.asset-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(37, 99, 235, 0.85);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.asset-meta {
+  padding: 7px 9px 4px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.asset-name {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.asset-sub {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.asset-actions {
+  display: flex;
+  gap: 2px;
+  padding: 3px 6px 7px;
+}
+
+.asset-actions .btn {
+  flex: 1;
+  padding: 4px 0;
+  border-radius: var(--radius-sm);
+}
+
+.asset-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 16px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.asset-empty p {
+  margin: 0;
+}
+
+.asset-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: rgba(20, 24, 31, 0.92);
+  color: #fff;
+  font-size: 13px;
+  box-shadow: var(--shadow-lg);
+  z-index: 60;
+  animation: asset-toast-in 0.2s ease;
+  pointer-events: none;
+}
+
+@keyframes asset-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ========================== 素材编辑器 ========================== */
+
+.asset-editor {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.asset-editor-topbar {
+  flex: 0 0 auto;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.asset-editor-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.asset-editor-name {
+  font-weight: 650;
+  font-size: 14px;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.asset-editor-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.divider-v {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.asset-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.asset-editor-body {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.asset-editor-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(16, 24, 40, 0.14);
+  touch-action: none;
+  background: #fff;
+}
+
+.asset-editor-crops {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* chip（小标签按钮，编辑器与面板通用） */
+.chip {
+  padding: 5px 11px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  transition: all 0.13s;
+}
+
+.chip:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.chip.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.asset-editor-props {
+  position: absolute;
+  right: 16px;
+  top: 14px;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.asset-editor-glyph-preview {
+  font-size: 40px;
+  line-height: 1;
+  text-align: center;
+  padding: 6px 0;
+}
+
+.asset-editor-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.asset-editor-slider .slider {
+  width: 100%;
+}
+
+.sticker-panel {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  width: 252px;
+  max-height: 45%;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.sticker-cell {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  padding: 0;
+  transition: background 0.12s, transform 0.12s;
+}
+
+.sticker-cell:hover {
+  background: var(--accent-soft);
+  transform: scale(1.12);
 }
