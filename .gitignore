@@ -13,6 +13,8 @@ vite.config.ts.timestamp-*.mjs
 # ---- 本地测试产物 ----
 .smoke/
 .smoke-text/
+.smoke-assets/
+.smoke-quick/
 coverage/
 
 # ---- Cloudflare / 部署缓存 ----
