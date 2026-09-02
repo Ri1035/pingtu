@@ -55,6 +55,7 @@ const zh: Record<string, Value> = {
   notEnoughPhotos: (n) => `还差 ${n} 张图片`,
   allFilled: '已全部填满',
   emptyState: '先添加几张图片吧',
+  emptyStateHint: '或直接把图片拖到画布上 · 支持一次多选批量上传',
 
   clickToAdd: '点击上传',
   replace: '替换',
@@ -142,6 +143,7 @@ const en: Record<string, Value> = {
   notEnoughPhotos: (n) => `${n} more photo(s) needed`,
   allFilled: 'All slots filled',
   emptyState: 'Add a few photos to get started',
+  emptyStateHint: 'or drag photos onto the canvas — multi-select batch upload supported',
 
   clickToAdd: 'Click to upload',
   replace: 'Replace',

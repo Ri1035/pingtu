@@ -195,7 +195,7 @@ function Editor() {
             selectedTextId={selectedTextId}
             onSelectText={setSelectedTextId}
           />
-          <PhotoTray store={store} onPickFiles={() => openPicker()} />
+          <PhotoTray store={store} onPickFiles={() => openPicker()} onFilesDropped={handleDropped} />
         </main>
       </div>
 
