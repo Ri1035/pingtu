@@ -78,6 +78,15 @@ const zh: Record<string, Value> = {
   addFailed: (n) => `有 ${n} 个文件无法导入`,
   fillFromTray: '按当前图片顺序填入画布',
 
+  // —— 单图自由调整（无缝模式配套） ——
+  fitScale: '缩放',
+  fitCover: '适应框体',
+  centerPhoto: '居中',
+  seamlessMode: '无缝拼图',
+  seamlessModeOn: '已开启',
+  seamlessHint: '图片之间及边缘不留任何间距或边框，紧密拼接',
+  seamlessOffHint: '开启后间距 / 边距 / 圆角归零，可关闭恢复留白样式',
+
   addText: '添加文字',
   textList: '文字图层',
   noText: '还没有文字，点击上方按钮添加',
@@ -189,6 +198,15 @@ const en: Record<string, Value> = {
   tooManyPhotos: (n) => `Up to ${n} photos supported`,
   addFailed: (n) => `${n} file(s) could not be imported`,
   fillFromTray: 'Fill the canvas in the current photo order',
+
+  // —— Per-photo adjustment (seamless mode) ——
+  fitScale: 'Scale',
+  fitCover: 'Fit cell',
+  centerPhoto: 'Center',
+  seamlessMode: 'Seamless',
+  seamlessModeOn: 'On',
+  seamlessHint: 'No gaps or borders between or around photos — flush tiling',
+  seamlessOffHint: 'Zeroes spacing / margin / radius while on; turn off to restore framed style',
 
   addText: 'Add text',
   textList: 'Text layers',

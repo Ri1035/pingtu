@@ -83,6 +83,12 @@ export interface CanvasStyle {
   background: string
   /** 是否透明背景（导出 PNG/WebP 时有效） */
   transparent: boolean
+  /**
+   * 无缝拼图模式：图片间及边缘的间距/留白/圆角全部归零，
+   * 图片紧密拼接不出现缝隙。渲染时强制 margin/gap/radius = 0
+   * （不覆盖用户存的间距值，关闭后恢复原设置）。
+   */
+  seamless: boolean
 }
 
 /** 导出设置 */
