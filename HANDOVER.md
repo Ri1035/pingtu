@@ -102,9 +102,28 @@ node scripts/smoke-quick.mjs      # 5 大页签快速回归（连 4173）
 
 ## 7. 部署到 Cloudflare Pages
 
+### 自动部署（当前方式，推荐）
+
+项目已绑定 GitHub 仓库 `Ri1035/pingtu`（分支 `main`），**推送代码到 main 分支会自动触发 Cloudflare Pages 构建与发布**，无需手动操作。
+
+```bash
+# 正常开发流程
+git add -A && git commit -m "feat: ..."  # 或 fix: / docs: 等
+git push origin main                       # 推送即自动部署
+```
+
+部署进度可在 Cloudflare 控制台 → Workers & Pages → pingtu → Deployments 查看，或通过 API 查询：
+
+```bash
+curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  https://api.cloudflare.com/client/v4/accounts/f1b789793774805c136bd7dfc86febd4/pages/projects/pingtu/deployments | \
+  python3 -c "import sys,json; [print(x['short_id'], x['deployment_trigger']['type'], x['latest_stage']['status'], x['created_on'][:19]) for x in json.load(sys.stdin)['result']]"
+```
+
+### 手动部署（紧急/备选）
+
 ```bash
 npm run build   # 先构建 dist/
-# 直连（若 Steam++ 代理失效）或走可用代理：
 CLOUDFLARE_API_TOKEN=<token> npx wrangler pages deploy dist --project-name=pingtu --commit-dirty=true
 ```
 
