@@ -276,26 +276,72 @@ function drawText(ctx: CanvasRenderingContext2D, text: TextItem, width: number, 
   if (!content) return
   const scale = width / BASE_WIDTH
   const fontSize = Math.max(1, text.fontSize * scale)
-  const style = `${text.italic ? 'italic ' : ''}${text.bold ? '700 ' : '400 '}${fontSize}px "${text.fontFamily}", sans-serif`
+  const lineHeight = fontSize * (text.lineHeight ?? 1.25)
+  const letterSpacing = (text.letterSpacing ?? 0) * scale
+  const align = text.align ?? 'center'
+  const font = `${text.italic ? 'italic ' : ''}${text.bold ? '700 ' : '400 '}${fontSize}px "${text.fontFamily}", sans-serif`
 
   ctx.save()
-  ctx.font = style
-  ctx.fillStyle = text.color
-  ctx.textAlign = 'center'
+  ctx.font = font
+  ctx.textAlign = align
   ctx.textBaseline = 'middle'
+  // letterSpacing 是较新的 Canvas API，部分旧浏览器未实现，用类型断言安全写入
+  if (letterSpacing !== 0) {
+    ;(ctx as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = `${letterSpacing}px`
+  }
+
+  const lines = content.split('\n')
+  // measureText 在部分浏览器不把 letterSpacing 计入宽度，这里手动补齐，保证命中测试与渲染一致
+  const lineWidths = lines.map((line) => {
+    const w = ctx.measureText(line).width
+    const ls = Math.max(0, line.length - 1) * letterSpacing
+    return w + ls
+  })
+  const maxW = Math.max(0, ...lineWidths)
 
   const cx = text.x * width
   const cy = text.y * height
+  // 文字块锚点：center 用中心，left 用左缘，right 用右缘
+  const anchorX = align === 'center' ? cx : align === 'left' ? cx - maxW / 2 : cx + maxW / 2
 
   ctx.translate(cx, cy)
   if (text.rotation !== 0) ctx.rotate((text.rotation * Math.PI) / 180)
 
-  // 多行文字按换行符拆分，逐行绘制
-  const lines = content.split('\n')
-  const lineHeight = fontSize * 1.25
+  ctx.globalAlpha = Math.min(1, Math.max(0, text.opacity ?? 1))
+
+  // 阴影
+  const shadowBlur = (text.shadowBlur ?? 0) * scale
+  if (shadowBlur > 0) {
+    ctx.shadowColor = text.shadowColor ?? '#000000'
+    ctx.shadowBlur = shadowBlur
+    ctx.shadowOffsetX = (text.shadowOffsetX ?? 0) * scale
+    ctx.shadowOffsetY = (text.shadowOffsetY ?? 0) * scale
+  }
+
+  ctx.fillStyle = text.color
+
+  // 描边（strokeText 与 fillText 同参数，先填充后描边形成轮廓）
+  const strokeWidth = (text.strokeWidth ?? 0) * scale
+  if (strokeWidth > 0) {
+    ctx.strokeStyle = text.strokeColor ?? '#111827'
+    ctx.lineWidth = strokeWidth
+    ctx.lineJoin = 'round'
+  }
+
+  // 已 translate 到 (cx, cy)，锚点在相对坐标里再减去 cx 即可
+  const xx = anchorX - cx
   const startY = -((lines.length - 1) * lineHeight) / 2
+  const underlineThick = Math.max(1, fontSize * 0.08)
+
   lines.forEach((line, i) => {
-    ctx.fillText(line, 0, startY + i * lineHeight)
+    const y = startY + i * lineHeight
+    if (strokeWidth > 0) ctx.strokeText(line, xx, y)
+    ctx.fillText(line, xx, y)
+    if (text.underline) {
+      const lw = lineWidths[i]
+      const lx = align === 'center' ? xx - lw / 2 : align === 'left' ? xx : xx - lw
+      ctx.fillRect(lx, y + fontSize * 0.52, lw, underlineThick)
+    }
   })
   ctx.restore()
 }

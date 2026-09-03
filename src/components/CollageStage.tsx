@@ -13,7 +13,7 @@ import {
   Minus,
   Square,
 } from 'lucide-react'
-import type { PhotoTransform, TextItem } from '../types'
+import type { AssetOverlay, PhotoTransform, TextItem } from '../types'
 import { DEFAULT_TRANSFORM, computeRatio, drawCollage, effectiveStyle } from '../lib/render'
 import { solveLayout } from '../lib/geometry'
 import type { CollageStore } from '../hooks/useCollage'
@@ -87,7 +87,7 @@ function computePanGeometry(
 
 export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextId, onSelectText }: Props) {
   const { t } = useI18n()
-  const { scene, slots, updateTransform, resetTransform, removePhoto, swapSlots, texts, updateText, removeText } =
+  const { scene, slots, updateTransform, resetTransform, removePhoto, swapSlots, texts, updateText, removeText, overlays, updateOverlay, removeOverlay } =
     store
   const seamless = scene.style.seamless
   // 无缝模式下不允许把图片缩到小于铺满（不留空白）；普通模式可缩小
@@ -101,6 +101,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
   const [zoomHint, setZoomHint] = useState<string | null>(null)
   const [isDropping, setIsDropping] = useState(false)
   const [borderPopupIndex, setBorderPopupIndex] = useState<number | null>(null)
+  const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null)
 
   /**
    * 悬浮菜单「延迟消失」机制：
@@ -148,6 +149,17 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
     startY: number
     startTextX: number
     startTextY: number
+    moved: boolean
+  } | null>(null)
+
+  // 浮层素材拖拽手势状态
+  const overlayDrag = useRef<{
+    pointerId: number
+    overlayId: string
+    startX: number
+    startY: number
+    startOvX: number
+    startOvY: number
     moved: boolean
   } | null>(null)
 
@@ -201,12 +213,14 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       const scale = preview.w / 1600
       const fontSize = Math.max(1, text.fontSize * scale)
       ctx.font = `${text.italic ? 'italic ' : ''}${text.bold ? '700 ' : '400 '}${fontSize}px "${text.fontFamily}", sans-serif`
+      const letterSpacing = (text.letterSpacing ?? 0) * scale
       const lines = text.content.split('\n')
       let maxW = 0
       for (const line of lines) {
-        maxW = Math.max(maxW, ctx.measureText(line).width)
+        const w = ctx.measureText(line).width + Math.max(0, line.length - 1) * letterSpacing
+        maxW = Math.max(maxW, w)
       }
-      const lineHeight = fontSize * 1.25
+      const lineHeight = fontSize * (text.lineHeight ?? 1.25)
       const h = lines.length * lineHeight
       const cx = text.x * preview.w
       const cy = text.y * preview.h
@@ -232,6 +246,48 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       return null
     },
     [texts, textBounds, preview],
+  )
+
+  /**
+   * 计算浮层素材在画布预览坐标系里的外接包围盒（考虑旋转），
+   * 用于命中测试与选中框绘制。
+   */
+  const overlayBounds = useCallback(
+    (o: AssetOverlay): { x: number; y: number; w: number; h: number } | null => {
+      if (preview.w <= 0) return null
+      const scale = preview.w / 1600
+      const cx = o.x * preview.w
+      const cy = o.y * preview.h
+      const s = o.scale * scale
+      const dw = o.width * s
+      const dh = o.height * s
+      if (dw <= 0 || dh <= 0) return null
+      const rad = (o.rotation * Math.PI) / 180
+      const cos = Math.cos(rad)
+      const sin = Math.sin(rad)
+      const hw = dw / 2
+      const hh = dh / 2
+      const corners: [number, number][] = [
+        [-hw, -hh],
+        [hw, -hh],
+        [hw, hh],
+        [-hw, hh],
+      ]
+      let minX = Infinity
+      let minY = Infinity
+      let maxX = -Infinity
+      let maxY = -Infinity
+      for (const [lx, ly] of corners) {
+        const px = cx + lx * cos - ly * sin
+        const py = cy + lx * sin + ly * cos
+        if (px < minX) minX = px
+        if (py < minY) minY = py
+        if (px > maxX) maxX = px
+        if (py > maxY) maxY = py
+      }
+      return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
+    },
+    [preview],
   )
 
   // —— 绘制 ——
@@ -268,7 +324,24 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
         }
       }
     }
-  }, [scene, preview, selectedIndex, solved, selectedTextId, texts, textBounds])
+
+    // 叠加选中浮层素材的虚线框
+    if (selectedOverlayId) {
+      const ov = overlays.find((o) => o.id === selectedOverlayId)
+      if (ov) {
+        const b = overlayBounds(ov)
+        if (b) {
+          const pad = 4
+          ctx.save()
+          ctx.setLineDash([5, 4])
+          ctx.lineWidth = 1.5
+          ctx.strokeStyle = '#22c55e'
+          ctx.strokeRect(b.x - pad, b.y - pad, b.w + pad * 2, b.h + pad * 2)
+          ctx.restore()
+        }
+      }
+    }
+  }, [scene, preview, selectedIndex, solved, selectedTextId, texts, textBounds, selectedOverlayId, overlays, overlayBounds])
 
   // —— 键盘快捷键 ——
   useEffect(() => {
@@ -276,7 +349,14 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       const target = e.target as HTMLElement | null
       if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        // 优先删除选中的文字
+        // 优先删除选中的浮层素材
+        if (selectedOverlayId && overlays.some((o) => o.id === selectedOverlayId)) {
+          e.preventDefault()
+          removeOverlay(selectedOverlayId)
+          setSelectedOverlayId(null)
+          return
+        }
+        // 其次删除选中的文字
         if (selectedTextId) {
           e.preventDefault()
           removeText(selectedTextId)
@@ -289,13 +369,14 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
         if (photo) removePhoto(photo.id)
         setSelectedIndex(null)
       } else if (e.key === 'Escape') {
+        setSelectedOverlayId(null)
         setSelectedIndex(null)
         onSelectText(null)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [selectedIndex, slots, removePhoto, selectedTextId, removeText, onSelectText])
+  }, [selectedIndex, slots, removePhoto, selectedTextId, removeText, onSelectText, selectedOverlayId, overlays, removeOverlay])
 
   const indexAt = useCallback(
     (clientX: number, clientY: number): number | null => {
@@ -314,6 +395,25 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
     [solved, preview],
   )
 
+  /** 命中测试：返回鼠标位置下的浮层素材 id（最上层优先） */
+  const overlayAt = useCallback(
+    (clientX: number, clientY: number): string | null => {
+      const canvas = canvasRef.current
+      if (!canvas) return null
+      const rect = canvas.getBoundingClientRect()
+      if (rect.width <= 0 || rect.height <= 0) return null
+      const x = (clientX - rect.left) * (preview.w / rect.width)
+      const y = (clientY - rect.top) * (preview.h / rect.height)
+      for (let i = overlays.length - 1; i >= 0; i--) {
+        const b = overlayBounds(overlays[i])
+        if (!b) continue
+        if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return overlays[i].id
+      }
+      return null
+    },
+    [overlays, overlayBounds, preview],
+  )
+
   const flashZoom = useCallback((value: number) => {
     setZoomHint(`${Math.round(value * 100)}%`)
     if (zoomHintTimer.current) window.clearTimeout(zoomHintTimer.current)
@@ -329,6 +429,19 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
     const canvas = canvasRef.current
     if (!canvas) return
     const onWheelNative = (e: WheelEvent) => {
+      // 浮层素材优先：悬停在浮层上时滚轮调整其大小
+      const oid = overlayAt(e.clientX, e.clientY)
+      if (oid) {
+        e.preventDefault()
+        const ov = overlays.find((o) => o.id === oid)
+        if (ov) {
+          const next = clamp(ov.scale * (1 - e.deltaY * 0.0016), 0.05, 8)
+          if (next === ov.scale) return
+          updateOverlay(oid, { scale: next })
+          flashZoom(next)
+          return
+        }
+      }
       const index = indexAt(e.clientX, e.clientY)
       const photo = index != null ? slots[index] : null
       if (!photo) return
@@ -341,10 +454,32 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
     }
     canvas.addEventListener('wheel', onWheelNative, { passive: false })
     return () => canvas.removeEventListener('wheel', onWheelNative)
-  }, [indexAt, slots, store.transforms, updateTransform, flashZoom, minZoom])
+  }, [indexAt, slots, store.transforms, updateTransform, flashZoom, minZoom, overlayAt, overlays, updateOverlay])
 
   // —— 指针交互 ——
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // 浮层素材优先（渲染在最顶层）
+    const overlayId = overlayAt(e.clientX, e.clientY)
+    if (overlayId) {
+      const overlay = overlays.find((o) => o.id === overlayId)
+      if (overlay) {
+        setSelectedOverlayId(overlayId)
+        setSelectedIndex(null)
+        if (selectedTextId) onSelectText(null)
+        overlayDrag.current = {
+          pointerId: e.pointerId,
+          overlayId,
+          startX: e.clientX,
+          startY: e.clientY,
+          startOvX: overlay.x,
+          startOvY: overlay.y,
+          moved: false,
+        }
+        ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
+        return
+      }
+    }
+
     // 文字优先：命中文字则进入文字拖拽/选中逻辑
     const textId = textAt(e.clientX, e.clientY)
     if (textId) {
@@ -404,6 +539,22 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // 浮层素材拖拽
+    const od = overlayDrag.current
+    if (od && od.pointerId === e.pointerId) {
+      const dx = e.clientX - od.startX
+      const dy = e.clientY - od.startY
+      if (!od.moved && Math.hypot(dx, dy) < TAP_THRESHOLD) return
+      od.moved = true
+      const rect = canvasRef.current?.getBoundingClientRect()
+      if (!rect || rect.width <= 0 || rect.height <= 0) return
+      updateOverlay(od.overlayId, {
+        x: clamp01(od.startOvX + dx / rect.width),
+        y: clamp01(od.startOvY + dy / rect.height),
+      })
+      return
+    }
+
     // 文字拖拽
     const td = textDrag.current
     if (td && td.pointerId === e.pointerId) {
@@ -484,6 +635,12 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
   }
 
   const finishGesture = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // 浮层素材拖拽结束
+    if (overlayDrag.current && overlayDrag.current.pointerId === e.pointerId) {
+      overlayDrag.current = null
+      return
+    }
+
     // 文字拖拽结束
     if (textDrag.current && textDrag.current.pointerId === e.pointerId) {
       textDrag.current = null
@@ -529,6 +686,10 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
     ? Math.round(((selectedTransform.zoom - minZoom) / (MAX_ZOOM - minZoom)) * 100)
     : 100
   const selectedZoomReal = selectedTransform ? Math.round(selectedTransform.zoom * 100) : 100
+
+  // ---------- 选中浮层素材控制条 ----------
+  const selectedOverlay = selectedOverlayId != null ? (overlays.find((o) => o.id === selectedOverlayId) ?? null) : null
+  const selectedOverlayBox = selectedOverlay ? overlayBounds(selectedOverlay) : null
 
   return (
     <div
@@ -809,12 +970,73 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
             )}
           </div>
         )}
+
+        {/* 选中浮层素材时的控制条：大小 / 旋转 / 不透明度 / 删除 */}
+        {selectedOverlay && selectedOverlayBox && (
+          <div
+            className="overlay-adjustbar"
+            style={{
+              left: selectedOverlayBox.x + selectedOverlayBox.w / 2,
+              top: Math.min(selectedOverlayBox.y + selectedOverlayBox.h + 10, Math.max(8, preview.h - 34)),
+            }}
+          >
+            <span className="adjustbar-zoom">{Math.round(selectedOverlay.scale * 100)}%</span>
+            <input
+              type="range"
+              className="slider slider-mini"
+              min={5}
+              max={800}
+              step={1}
+              value={Math.round(selectedOverlay.scale * 100)}
+              aria-label={t('overlayScale')}
+              title={t('overlayScale')}
+              onChange={(e) => updateOverlay(selectedOverlay.id, { scale: Number(e.target.value) / 100 })}
+            />
+            <span className="overlay-bar-label">{t('overlayRotate')}</span>
+            <input
+              type="range"
+              className="slider slider-mini"
+              min={-180}
+              max={180}
+              step={1}
+              value={selectedOverlay.rotation}
+              aria-label={t('overlayRotate')}
+              title={t('overlayRotate')}
+              onChange={(e) => updateOverlay(selectedOverlay.id, { rotation: Number(e.target.value) })}
+            />
+            <span className="overlay-bar-label">{t('opacity')}</span>
+            <input
+              type="range"
+              className="slider slider-mini"
+              min={0}
+              max={100}
+              step={1}
+              value={Math.round(selectedOverlay.opacity * 100)}
+              aria-label={t('opacity')}
+              title={t('opacity')}
+              onChange={(e) => updateOverlay(selectedOverlay.id, { opacity: Number(e.target.value) / 100 })}
+            />
+            <button
+              type="button"
+              className="adjustbar-btn is-danger"
+              title={t('overlayDelete')}
+              aria-label={t('overlayDelete')}
+              onClick={() => {
+                removeOverlay(selectedOverlay.id)
+                setSelectedOverlayId(null)
+              }}
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+        )}
       </div>
 
       {zoomHint && <div className="zoom-badge">{`${t('zoom')} ${zoomHint}`}</div>}
 
       <div className="stage-status">
-        {selectedIndex != null && <span className="pill pill-accent">{t('swapHint')}</span>}
+        {selectedOverlay && <span className="pill pill-accent">{t('overlayHint')}</span>}
+        {!selectedOverlay && selectedIndex != null && <span className="pill pill-accent">{t('swapHint')}</span>}
         <span className="pill">
           {preview.w} × {preview.h}
         </span>

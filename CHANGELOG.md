@@ -13,6 +13,21 @@
 ### Fixed
 - （修复在此记录）
 
+## [1.4.0] - 2026-09-03
+
+### Added
+- **浮层素材可移动 / 可调整大小**：此前「添加为浮层」的素材叠加到画布后无法移动、也无法调整大小。本次新增：拖拽浮层直接移动位置（指针捕获 + 画布比例坐标换算，边界约束在画布内）；选中后底部出现浮层控制条，含大小（5%~800%）、旋转（-180°~180°）、不透明度（0~100%）三个滑条与删除按钮；鼠标悬停在浮层上滚动滚轮也可实时缩放。
+- **文字图层更多样式**：在原有字号 / 颜色 / 粗斜 / 旋转基础上新增：行距（1.0×~2.5×）、字间距（-5~20px）、对齐（左 / 中 / 右）、下划线、描边（开关 + 宽度 1~20px + 颜色）、阴影（开关 + 模糊 + 水平 / 垂直偏移 + 颜色）、不透明度（0~100%）。渲染层 `drawText` 同步支持全部新属性（letterSpacing / lineHeight / underline / stroke / shadow / globalAlpha），预览与导出一致。
+
+### Changed
+- `TextItem` / `AssetOverlay` 类型扩展：`TextItem` 新增 lineHeight、letterSpacing、align、underline、strokeColor/strokeWidth、shadowColor/shadowBlur/shadowOffsetX/Y、opacity 字段；新增 `DEFAULT_TEXT` 统一默认值。
+- 版本号从 `v1.3.0` 升级到 `v1.4.0`。
+
+### Notes
+- 完全复用现有 Canvas 2D 渲染管线，未引入第三方依赖（另调研了 Fabric.js / Konva.js，均为重依赖、需重写渲染核心，对此轻量本地工具不划算）。
+- npm run typecheck / build 通过（gzip ~81 KB）
+- 现有拼图 / 文字 / 素材库 / 修图编辑器 / 导出功能无回归
+
 ## [1.3.0] - 2026-09-03
 
 ### Fixed
@@ -127,7 +142,8 @@
 ### Notes
 - 以 [esmcelroy/photo-grid-collage-maker](https://github.com/esmcelroy/photo-grid-collage-maker) 为主要架构参考，另调研并融合 3 个开源拼图项目的优点，详见 `README.md`。
 
-[Unreleased]: https://github.com/Ri1035/pingtu/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/Ri1035/pingtu/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/Ri1035/pingtu/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Ri1035/pingtu/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/Ri1035/pingtu/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Ri1035/pingtu/compare/v1.0.0...v1.1.0

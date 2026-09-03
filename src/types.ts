@@ -63,6 +63,28 @@ export interface TextItem {
   italic: boolean
   /** 旋转角度（度） */
   rotation: number
+  /** 行高倍率（相对字号，默认 1.25） */
+  lineHeight: number
+  /** 字间距（设计像素，默认 0，可为负） */
+  letterSpacing: number
+  /** 对齐方式（相对文字块中心） */
+  align: 'left' | 'center' | 'right'
+  /** 下划线 */
+  underline: boolean
+  /** 描边颜色（strokeWidth 为 0 时不描边） */
+  strokeColor: string
+  /** 描边宽度（设计像素，0 = 关闭描边） */
+  strokeWidth: number
+  /** 阴影颜色 */
+  shadowColor: string
+  /** 阴影模糊半径（0 = 关闭阴影） */
+  shadowBlur: number
+  /** 阴影水平偏移（设计像素） */
+  shadowOffsetX: number
+  /** 阴影垂直偏移（设计像素） */
+  shadowOffsetY: number
+  /** 不透明度 0~1（默认 1） */
+  opacity: number
   /** 水平位置，相对画布宽度的比例 0~1（0=左，1=右，0.5=居中） */
   x: number
   /** 垂直位置，相对画布高度的比例 0~1 */

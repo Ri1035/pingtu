@@ -897,6 +897,35 @@ input, select, textarea {
 
 .adjustbar-btn:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }
 
+/* 选中浮层素材的调整控制条 */
+.overlay-adjustbar {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: rgba(20, 24, 31, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  transform: translate(-50%, 0);
+  max-width: 92%;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.overlay-adjustbar .slider-mini { width: 90px; height: 4px; }
+
+.overlay-bar-label {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.overlay-adjustbar .adjustbar-btn.is-danger:hover { background: rgba(220, 38, 38, 0.85); }
+
 /* 边框设置弹出面板 */
 .border-popup {
   display: flex;
@@ -1673,6 +1702,15 @@ input, select, textarea {
 
   .slot-adjustbar .slider-mini {
     width: 80px;
+  }
+
+  .overlay-adjustbar {
+    flex-wrap: wrap;
+    max-width: 85%;
+  }
+
+  .overlay-adjustbar .slider-mini {
+    width: 70px;
   }
 
   .border-popup {
