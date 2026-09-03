@@ -134,4 +134,45 @@ export async function detectFonts(): Promise<FontInfo[]> {
   return pending
 }
 
+/**
+ * Local Font Access API（Chromium 103+ 可用，需用户授权）：
+ * 直接读取本机已安装的全部字体，比启发式探测更全、更准。
+ */
+export function supportsLocalFontAccess(): boolean {
+  return typeof window !== 'undefined' && 'queryLocalFonts' in window
+}
+
+type LocalFontEntry = { family: string; fullName: string; postscriptName: string; style: string }
+
+/**
+ * 读取本机全部字体。
+ * - 支持时：请求浏览器授权并枚举所有字体族（去重、按字母排序）。
+ * - 不支持或用户拒绝时：回退到启发式探测 `detectFonts`。
+ *
+ * 返回 { list, granted }，granted 表示是否真正读到了本机字体。
+ */
+export async function queryLocalFonts(): Promise<{ list: FontInfo[]; granted: boolean }> {
+  if (!supportsLocalFontAccess()) {
+    return { list: await detectFonts(), granted: false }
+  }
+
+  try {
+    const query = (window as unknown as { queryLocalFonts: () => Promise<LocalFontEntry[]> }).queryLocalFonts
+    const fonts = await query()
+    const seen = new Set<string>()
+    const list: FontInfo[] = []
+    for (const f of fonts) {
+      if (!f?.family || seen.has(f.family)) continue
+      seen.add(f.family)
+      list.push({ family: f.family, generic: false })
+    }
+    list.sort((a, b) => a.family.localeCompare(b.family))
+    if (list.length === 0) throw new Error('empty')
+    return { list, granted: true }
+  } catch {
+    // 用户拒绝授权 / 权限受限时回退
+    return { list: await detectFonts(), granted: false }
+  }
+}
+
 

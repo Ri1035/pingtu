@@ -3,7 +3,7 @@ import { Plus, Trash2 } from 'lucide-react'
 import { Field, Slider, Segmented, Switch } from './ui/Controls'
 import { useI18n } from '../i18n'
 import type { CollageStore } from '../hooks/useCollage'
-import { detectFonts, type FontInfo } from '../lib/fonts'
+import { detectFonts, queryLocalFonts, supportsLocalFontAccess, type FontInfo } from '../lib/fonts'
 
 interface Props {
   store: CollageStore
@@ -18,6 +18,7 @@ export function TextPanel({ store, selectedTextId, onSelectText }: Props) {
   const { texts, addText, updateText, removeText } = store
   const [fonts, setFonts] = useState<FontInfo[] | null>(null)
   const [fontError, setFontError] = useState(false)
+  const [fontNotice, setFontNotice] = useState<string | null>(null)
 
   useEffect(() => {
     let alive = true
@@ -32,6 +33,18 @@ export function TextPanel({ store, selectedTextId, onSelectText }: Props) {
       alive = false
     }
   }, [])
+
+  const handleReadLocalFonts = async () => {
+    setFontNotice(null)
+    try {
+      const { list, granted } = await queryLocalFonts()
+      setFonts(list)
+      setFontError(false)
+      setFontNotice(granted ? t('localFontsLoaded') : supportsLocalFontAccess() ? t('localFontsDenied') : t('localFontsUnsupported'))
+    } catch {
+      setFontNotice(t('localFontsUnsupported'))
+    }
+  }
 
   const selected = texts.find((item) => item.id === selectedTextId) ?? null
 
@@ -116,6 +129,15 @@ export function TextPanel({ store, selectedTextId, onSelectText }: Props) {
                 </option>
               ))}
             </select>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={handleReadLocalFonts}
+              style={{ marginTop: 8 }}
+            >
+              {t('readLocalFonts')}
+            </button>
+            {fontNotice && <div className="field-hint" style={{ marginTop: 6 }}>{fontNotice}</div>}
             {selected.fontFamily && (
               <div
                 className="font-preview"

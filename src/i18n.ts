@@ -9,7 +9,7 @@ type Value = string | ((n: number) => string)
 const zh: Record<string, Value> = {
   appTitle: '拼图编辑器',
   appTagline: '本地处理 · 图片不上传',
-  appVersion: 'v1.5.0',
+  appVersion: 'v1.6.0',
 
   tabLayout: '布局',
   tabStyle: '样式',
@@ -193,12 +193,52 @@ const zh: Record<string, Value> = {
 
   // —— 字体面板 ——
   fontGeneric: '通用',
+  readLocalFonts: '读取本机字体',
+  localFontsLoaded: '已读取本机全部字体',
+  localFontsUnsupported: '当前浏览器不支持读取本机字体，已使用系统探测结果',
+  localFontsDenied: '已取消授权，未读取本机字体',
+
+  // —— 水印 ——
+  tabWatermark: '水印',
+  watermarkEnable: '启用水印',
+  watermarkTemplate: '水印模板',
+  watermarkTplTextTile: '平铺文字',
+  watermarkTplTextCenter: '居中文字',
+  watermarkTplTextCorner: '角标文字',
+  watermarkTplImageTile: '平铺图片',
+  watermarkTplImageCenter: '居中图片',
+  watermarkType: '类型',
+  watermarkTypeText: '文字',
+  watermarkTypeImage: '图片',
+  watermarkMode: '排布',
+  watermarkModeTile: '平铺',
+  watermarkModeSingle: '单个',
+  watermarkText: '水印文字',
+  watermarkTextPlaceholder: '例如：禁止转载 / 仅限预览',
+  watermarkUpload: '上传水印图片',
+  watermarkUploadReplace: '更换图片',
+  watermarkScale: '图片大小',
+  watermarkSpacing: '平铺间距',
+  watermarkPositionX: '水平位置',
+  watermarkPositionY: '垂直位置',
+  watermarkHint: '水印绘制在拼图最上层，预览与导出一致',
+
+  // —— 开发者信息 ——
+  about: '关于',
+  aboutDeveloper: '开发者',
+  aboutContact: '联系方式',
+  aboutTech: '技术栈',
+  aboutLicense: '开源协议',
+  aboutIntro: '一款纯本地、无后端的在线拼图编辑器，图片全程在浏览器内处理，不会上传到任何服务器。',
+  aboutCopyLink: '复制分享链接',
+  aboutLinkCopied: '链接已复制',
+  aboutClose: '关闭',
 }
 
 const en: Record<string, Value> = {
   appTitle: 'Collage Editor',
   appTagline: 'Runs locally · never uploaded',
-  appVersion: 'v1.5.0',
+  appVersion: 'v1.6.0',
 
   tabLayout: 'Layout',
   tabStyle: 'Style',
@@ -382,6 +422,46 @@ const en: Record<string, Value> = {
 
   // —— Font panel ——
   fontGeneric: 'Generic',
+  readLocalFonts: 'Read local fonts',
+  localFontsLoaded: 'All local fonts loaded',
+  localFontsUnsupported: 'This browser does not support local font access; using detected fonts',
+  localFontsDenied: 'Permission denied — local fonts not loaded',
+
+  // —— Watermark ——
+  tabWatermark: 'Watermark',
+  watermarkEnable: 'Enable watermark',
+  watermarkTemplate: 'Template',
+  watermarkTplTextTile: 'Tiled text',
+  watermarkTplTextCenter: 'Centered text',
+  watermarkTplTextCorner: 'Corner text',
+  watermarkTplImageTile: 'Tiled image',
+  watermarkTplImageCenter: 'Centered image',
+  watermarkType: 'Type',
+  watermarkTypeText: 'Text',
+  watermarkTypeImage: 'Image',
+  watermarkMode: 'Layout',
+  watermarkModeTile: 'Tile',
+  watermarkModeSingle: 'Single',
+  watermarkText: 'Watermark text',
+  watermarkTextPlaceholder: 'e.g. Confidential / Preview only',
+  watermarkUpload: 'Upload watermark image',
+  watermarkUploadReplace: 'Replace image',
+  watermarkScale: 'Image size',
+  watermarkSpacing: 'Spacing',
+  watermarkPositionX: 'Position X',
+  watermarkPositionY: 'Position Y',
+  watermarkHint: 'The watermark renders on the top layer and is included in export',
+
+  // —— About ——
+  about: 'About',
+  aboutDeveloper: 'Developer',
+  aboutContact: 'Contact',
+  aboutTech: 'Tech stack',
+  aboutLicense: 'License',
+  aboutIntro: 'A privacy-first, offline collage editor that runs entirely in your browser — images are never uploaded.',
+  aboutCopyLink: 'Copy share link',
+  aboutLinkCopied: 'Link copied',
+  aboutClose: 'Close',
 }
 
 const DICTS: Record<Lang, Record<string, Value>> = { zh, en }

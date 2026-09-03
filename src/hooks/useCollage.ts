@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { AssetOverlay, CanvasStyle, CellBorder, CellSizeScale, ExportOptions, GridLayout, PhotoItem, PhotoTransform, TextItem } from '../types'
+import type { AssetOverlay, CanvasStyle, CellBorder, CellSizeScale, ExportOptions, GridLayout, PhotoItem, PhotoTransform, TextItem, WatermarkConfig } from '../types'
 import { getLayoutsForCount, MAX_COUNT, MIN_COUNT } from '../lib/layouts'
 import { DEFAULT_TRANSFORM, type CollageScene } from '../lib/render'
+import { DEFAULT_WATERMARK } from '../lib/watermark'
 import { loadImageFiles, disposePhoto } from '../lib/image'
 
 /**
@@ -96,6 +97,8 @@ export function useCollage() {
   const [cellBorders, setCellBorders] = useState<Record<string, CellBorder>>({})
   const [cellSizes, setCellSizes] = useState<Record<string, CellSizeScale>>({})
   const [overlays, setOverlays] = useState<AssetOverlay[]>([])
+  const [watermark, setWatermarkRaw] = useState<WatermarkConfig>(DEFAULT_WATERMARK)
+  const [watermarkImage, setWatermarkImage] = useState<HTMLImageElement | null>(null)
   const [style, setStyleRaw] = useState<CanvasStyle>(persisted.style)
   const [exportOptions, setExportOptionsRaw] = useState<ExportOptions>(persisted.exportOptions)
   const [notice, setNotice] = useState<string | null>(null)
@@ -142,6 +145,10 @@ export function useCollage() {
 
   const setExportOptions = useCallback((patch: Partial<ExportOptions>) => {
     setExportOptionsRaw((prev) => ({ ...prev, ...patch }))
+  }, [])
+
+  const setWatermark = useCallback((patch: Partial<WatermarkConfig>) => {
+    setWatermarkRaw((prev) => ({ ...prev, ...patch }))
   }, [])
 
   /** 追加图片；返回真正新增的数量 */
@@ -228,6 +235,8 @@ export function useCollage() {
     setCellBorders({})
     setCellSizes({})
     setOverlays([])
+    setWatermarkRaw(DEFAULT_WATERMARK)
+    setWatermarkImage(null)
   }, [])
 
   // —— 文字图层 ——
@@ -335,8 +344,8 @@ export function useCollage() {
   }, [layout, photos])
 
   const scene: CollageScene = useMemo(
-    () => ({ layout, slots, transforms, style, texts, cellBorders, cellSizes, overlays }),
-    [layout, slots, transforms, style, texts, cellBorders, cellSizes, overlays],
+    () => ({ layout, slots, transforms, style, texts, cellBorders, cellSizes, overlays, watermark, watermarkImage }),
+    [layout, slots, transforms, style, texts, cellBorders, cellSizes, overlays, watermark, watermarkImage],
   )
 
   const filledCount = slots.filter(Boolean).length
@@ -386,6 +395,11 @@ export function useCollage() {
     updateOverlay,
     removeOverlay,
     clearOverlays,
+    // 水印
+    watermark,
+    setWatermark,
+    watermarkImage,
+    setWatermarkImage,
     // 样式与导出
     style,
     setStyle,

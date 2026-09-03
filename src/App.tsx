@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { LayoutGrid, SlidersHorizontal, Download, Type, Library } from 'lucide-react'
+import { LayoutGrid, SlidersHorizontal, Download, Type, Library, Stamp } from 'lucide-react'
 import { I18nContext, LANG_STORAGE_KEY, makeI18n, useI18n, type Lang } from './i18n'
 import { useCollage } from './hooks/useCollage'
 import { useAssets } from './hooks/useAssets'
@@ -11,10 +11,12 @@ import { ExportPanel } from './components/ExportPanel'
 import { CollageStage } from './components/CollageStage'
 import { PhotoTray } from './components/PhotoTray'
 import { AssetPanel } from './components/AssetPanel'
+import { WatermarkPanel } from './components/WatermarkPanel'
+import { AboutModal } from './components/AboutModal'
 import { buildFilename, downloadBlob, renderToBlob, supportsWebp } from './lib/export'
 import { ACCEPT_ATTR } from './lib/image'
 
-type Tab = 'layout' | 'style' | 'text' | 'export' | 'assets'
+type Tab = 'layout' | 'style' | 'text' | 'export' | 'assets' | 'watermark'
 
 export function App() {
   const [lang, setLangState] = useState<Lang>(() => {
@@ -59,6 +61,7 @@ function Editor() {
   const [toast, setToast] = useState<string | null>(null)
   const [lastResult, setLastResult] = useState<{ size: number; width: number; height: number } | null>(null)
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null)
+  const [aboutOpen, setAboutOpen] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const replaceIndexRef = useRef<number | null>(null)
@@ -76,6 +79,16 @@ function Editor() {
       store.setNotice(null)
     }
   }, [store.notice, store.setNotice, showToast])
+
+  // —— 分享链接：支持 #about 锚点直接打开开发者信息页 ——
+  useEffect(() => {
+    const openFromHash = () => {
+      if (window.location.hash === '#about') setAboutOpen(true)
+    }
+    openFromHash()
+    window.addEventListener('hashchange', openFromHash)
+    return () => window.removeEventListener('hashchange', openFromHash)
+  }, [])
 
   // —— 文件选择 ——
   const openPicker = useCallback((replaceIndex?: number) => {
@@ -151,6 +164,7 @@ function Editor() {
     { key: 'layout', label: t('tabLayout'), icon: LayoutGrid },
     { key: 'style', label: t('tabStyle'), icon: SlidersHorizontal },
     { key: 'text', label: t('tabText'), icon: Type },
+    { key: 'watermark', label: t('tabWatermark'), icon: Stamp },
     { key: 'export', label: t('tabExport'), icon: Download },
     { key: 'assets', label: t('tabAssets'), icon: Library },
   ]
@@ -191,7 +205,11 @@ function Editor() {
 
   return (
     <div className="app">
-      <TopBar onReset={handleReset} onToggleLang={() => setLang(lang === 'zh' ? 'en' : 'zh')} />
+      <TopBar
+        onReset={handleReset}
+        onToggleLang={() => setLang(lang === 'zh' ? 'en' : 'zh')}
+        onOpenAbout={() => setAboutOpen(true)}
+      />
 
       <div className="app-body">
         <aside className="sidebar">
@@ -219,6 +237,7 @@ function Editor() {
             {tab === 'text' && (
               <TextPanel store={store} selectedTextId={selectedTextId} onSelectText={setSelectedTextId} />
             )}
+            {tab === 'watermark' && <WatermarkPanel store={store} />}
             {tab === 'export' && (
               <ExportPanel store={store} busy={busy} lastResult={lastResult} onExport={handleExport} />
             )}
@@ -248,6 +267,8 @@ function Editor() {
       />
 
       {toast && <div className="toast">{toast}</div>}
+
+      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
     </div>
   )
 }

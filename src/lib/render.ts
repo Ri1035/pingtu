@@ -1,4 +1,4 @@
-import type { AssetOverlay, BorderPattern, CanvasStyle, CellBorder, CellRect, CellSizeScale, GridLayout, PhotoItem, PhotoTransform, TextItem } from '../types'
+import type { AssetOverlay, BorderPattern, CanvasStyle, CellBorder, CellRect, CellSizeScale, GridLayout, PhotoItem, PhotoTransform, TextItem, WatermarkConfig } from '../types'
 import { canvasRatioFromContent, computeContentRatio, isCellResized, parseRatio, resolveCells, solveLayout } from './geometry'
 
 /**
@@ -40,6 +40,10 @@ export interface CollageScene {
   cellSizes?: Record<string, CellSizeScale>
   /** 浮在画布上的素材图层 */
   overlays?: AssetOverlay[]
+  /** 水印配置（叠加在最上层） */
+  watermark?: WatermarkConfig
+  /** 图片水印用的图片（已解码），文字水印可忽略 */
+  watermarkImage?: HTMLImageElement | null
 }
 
 export interface DrawOptions {
@@ -422,6 +426,102 @@ function drawText(ctx: CanvasRenderingContext2D, text: TextItem, width: number, 
 }
 
 /**
+ * 在指定坐标、指定旋转下绘制一个文字水印标记。
+ * 调用前需设置好 ctx.font / fillStyle / textAlign / textBaseline / globalAlpha。
+ */
+function drawTextMark(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  rotation: number,
+): void {
+  ctx.save()
+  ctx.translate(x, y)
+  if (rotation !== 0) ctx.rotate((rotation * Math.PI) / 180)
+  ctx.fillText(text, 0, 0)
+  ctx.restore()
+}
+
+/**
+ * 绘制水印（叠加在拼图最上层，导出同样生效）。
+ * 支持文字 / 图片两种内容，平铺 / 单个两种排布。
+ */
+function drawWatermark(
+  ctx: CanvasRenderingContext2D,
+  wm: WatermarkConfig,
+  image: HTMLImageElement | null,
+  width: number,
+  height: number,
+): void {
+  if (!wm || !wm.enabled) return
+  const scale = width / BASE_WIDTH
+  const opacity = Math.min(1, Math.max(0, wm.opacity ?? 0.3))
+
+  ctx.save()
+  ctx.globalAlpha = opacity
+
+  if (wm.type === 'image') {
+    if (!image || image.width <= 0) {
+      ctx.restore()
+      return
+    }
+    const w = Math.max(1, width * (wm.imageScale ?? 0.25))
+    const h = w * (image.height / Math.max(1, image.width))
+    if (wm.mode === 'tile') {
+      const spacing = (wm.spacing ?? 0) * scale
+      const strideX = w + spacing
+      const strideY = h + spacing
+      for (let y = strideY / 2; y < height + strideY / 2; y += strideY) {
+        for (let x = strideX / 2; x < width + strideX / 2; x += strideX) {
+          ctx.save()
+          ctx.translate(x, y)
+          if (wm.rotation !== 0) ctx.rotate((wm.rotation * Math.PI) / 180)
+          ctx.drawImage(image, -w / 2, -h / 2, w, h)
+          ctx.restore()
+        }
+      }
+    } else {
+      const x = (wm.x ?? 0.5) * width
+      const y = (wm.y ?? 0.5) * height
+      ctx.save()
+      ctx.translate(x, y)
+      if (wm.rotation !== 0) ctx.rotate((wm.rotation * Math.PI) / 180)
+      ctx.drawImage(image, -w / 2, -h / 2, w, h)
+      ctx.restore()
+    }
+  } else {
+    const content = wm.text
+    if (!content) {
+      ctx.restore()
+      return
+    }
+    const fontSize = Math.max(1, wm.fontSize * scale)
+    const family = wm.fontFamily || 'sans-serif'
+    ctx.font = `${fontSize}px "${family}", sans-serif`
+    ctx.fillStyle = wm.color ?? '#111827'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+
+    if (wm.mode === 'tile') {
+      const spacing = (wm.spacing ?? 0) * scale
+      const stride = fontSize + spacing
+      for (let y = stride / 2; y < height + stride / 2; y += stride) {
+        for (let x = stride / 2; x < width + stride / 2; x += stride) {
+          drawTextMark(ctx, content, x, y, wm.rotation)
+        }
+      }
+    } else {
+      const x = (wm.x ?? 0.5) * width
+      const y = (wm.y ?? 0.5) * height
+      drawTextMark(ctx, content, x, y, wm.rotation)
+    }
+  }
+
+  ctx.restore()
+}
+
+/**
  * 把整张拼图画到画布上。
  * @param canvasWidth  画布像素宽（预览时为显示宽度，导出时为目标宽度）
  */
@@ -516,6 +616,11 @@ export function drawCollage(
     for (const overlay of scene.overlays) {
       drawAssetOverlay(ctx, overlay, width, height)
     }
+  }
+
+  // 水印叠加在绝对最上层
+  if (scene.watermark) {
+    drawWatermark(ctx, scene.watermark, scene.watermarkImage ?? null, width, height)
   }
 
   ctx.restore()
