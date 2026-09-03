@@ -112,7 +112,7 @@ export function TextPanel({ store, selectedTextId, onSelectText }: Props) {
               {fonts?.map((f) => (
                 <option key={f.family} value={f.family} style={{ fontFamily: `"${f.family}", sans-serif` }}>
                   {f.family}
-                  {f.generic ? ` (${t('ratioAuto')})` : ''}
+                  {f.generic ? ` (${t('fontGeneric')})` : ''}
                 </option>
               ))}
             </select>

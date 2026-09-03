@@ -48,7 +48,7 @@ export function PhotoTray({ store, onPickFiles, onFilesDropped }: Props) {
       }}
     >
       <div className="tray-side">
-        <button type="button" className="btn btn-primary" onClick={onPickFiles}>
+        <button type="button" className="btn btn-primary" onClick={onPickFiles} aria-label={photos.length > 0 ? t('addMore') : t('addPhotos')}>
           <Upload size={15} />
           {photos.length > 0 ? t('addMore') : t('addPhotos')}
         </button>

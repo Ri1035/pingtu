@@ -218,10 +218,10 @@ export function useCollage() {
   }, [])
 
   // —— 文字图层 ——
-  let textSeed = 0
+  const textSeedRef = useRef(0)
   const addText = useCallback((partial?: Partial<TextItem>): TextItem => {
-    textSeed += 1
-    const id = `t${Date.now().toString(36)}${textSeed.toString(36)}`
+    textSeedRef.current += 1
+    const id = `t${Date.now().toString(36)}${textSeedRef.current.toString(36)}`
     const item: TextItem = {
       id,
       content: partial?.content ?? '',

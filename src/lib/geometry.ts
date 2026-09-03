@@ -193,12 +193,4 @@ export function toCssGrid(layout: GridLayout): {
   }
 }
 
-/** 判断点落在哪个格子内（用于鼠标/触摸命中测试） */
-export function hitTest(solved: SolvedLayout, x: number, y: number): string | null {
-  for (const name of solved.names) {
-    const c = solved.cells[name]
-    if (!c) continue
-    if (x >= c.x && x <= c.x + c.w && y >= c.y && y <= c.y + c.h) return name
-  }
-  return null
-}
+

@@ -42,7 +42,7 @@ export function ExportPanel({ store, busy, lastResult, onExport }: Props) {
 
       <Field
         label={t('exportQuality')}
-        value={exportOptions.format === 'png' ? '无损' : `${Math.round(exportOptions.quality * 100)}%`}
+        value={exportOptions.format === 'png' ? t('lossless') : `${Math.round(exportOptions.quality * 100)}%`}
       >
         <Slider
           value={Math.round(exportOptions.quality * 100)}
@@ -51,7 +51,7 @@ export function ExportPanel({ store, busy, lastResult, onExport }: Props) {
           disabled={exportOptions.format === 'png'}
           onChange={(v) => setExportOptions({ quality: v / 100 })}
         />
-        {exportOptions.format === 'png' && <div className="field-hint">PNG 为无损格式，质量固定</div>}
+        {exportOptions.format === 'png' && <div className="field-hint">{t('pngLosslessHint')}</div>}
       </Field>
 
       <div className="divider" />
@@ -93,7 +93,7 @@ export function ExportPanel({ store, busy, lastResult, onExport }: Props) {
         <div className="field-hint">
           {lastResult
             ? `${t('lastExport')}：${formatBytes(lastResult.size)}`
-            : '导出后会显示实际文件大小'}
+            : t('exportSizeHint')}
         </div>
       </Field>
 

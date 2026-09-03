@@ -603,6 +603,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
               type="button"
               className="adjustbar-btn"
               title={t('fitCover')}
+              aria-label={t('fitCover')}
               onClick={() =>
                 updateTransform(selectedPhoto.id, { fit: 'cover', zoom: 1, offsetX: 0, offsetY: 0 })
               }
@@ -613,6 +614,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
               type="button"
               className="adjustbar-btn"
               title={t('centerPhoto')}
+              aria-label={t('centerPhoto')}
               onClick={() => updateTransform(selectedPhoto.id, { offsetX: 0, offsetY: 0 })}
             >
               {t('centerPhoto')}
@@ -621,6 +623,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
               type="button"
               className="adjustbar-btn"
               title={t('resetView')}
+              aria-label={t('resetView')}
               onClick={() => resetTransform(selectedPhoto.id)}
             >
               <RefreshCw size={12} />
@@ -647,12 +650,13 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
           >
             {toolbarPhoto && toolbarTransform ? (
               <>
-                <button type="button" title={t('replace')} onClick={() => onPickFiles(toolbarIndex)}>
+                <button type="button" title={t('replace')} aria-label={t('replace')} onClick={() => onPickFiles(toolbarIndex)}>
                   <ImagePlus size={14} />
                 </button>
                 <button
                   type="button"
                   title={t('rotateRight')}
+                  aria-label={t('rotateRight')}
                   onClick={() => updateTransform(toolbarPhoto.id, { rotation: (toolbarTransform.rotation + 90) % 360 })}
                 >
                   <RotateCw size={14} />
@@ -660,6 +664,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                 <button
                   type="button"
                   title={t('flipH')}
+                  aria-label={t('flipH')}
                   onClick={() => updateTransform(toolbarPhoto.id, { flipH: !toolbarTransform.flipH })}
                 >
                   <FlipHorizontal2 size={14} />
@@ -667,6 +672,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                 <button
                   type="button"
                   title={t('flipV')}
+                  aria-label={t('flipV')}
                   onClick={() => updateTransform(toolbarPhoto.id, { flipV: !toolbarTransform.flipV })}
                 >
                   <FlipVertical2 size={14} />
@@ -674,19 +680,21 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                 <button
                   type="button"
                   title={toolbarTransform.fit === 'cover' ? t('fitContain') : t('fitCover')}
+                  aria-label={toolbarTransform.fit === 'cover' ? t('fitContain') : t('fitCover')}
                   onClick={() =>
                     updateTransform(toolbarPhoto.id, { fit: toolbarTransform.fit === 'cover' ? 'contain' : 'cover' })
                   }
                 >
                   {toolbarTransform.fit === 'cover' ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
                 </button>
-                <button type="button" title={t('resetView')} onClick={() => resetTransform(toolbarPhoto.id)}>
+                <button type="button" title={t('resetView')} aria-label={t('resetView')} onClick={() => resetTransform(toolbarPhoto.id)}>
                   <RefreshCw size={14} />
                 </button>
                 {/* 单格放大 */}
                 <button
                   type="button"
                   title={t('cellEnlarge')}
+                  aria-label={t('cellEnlarge')}
                   onClick={() => {
                     const cellName = solved?.names[toolbarIndex]
                     if (!cellName) return
@@ -700,6 +708,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                 <button
                   type="button"
                   title={t('cellShrink')}
+                  aria-label={t('cellShrink')}
                   onClick={() => {
                     const cellName = solved?.names[toolbarIndex]
                     if (!cellName) return
@@ -716,6 +725,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                   type="button"
                   className={store.cellBorders[solved!.names[toolbarIndex]]?.width > 0 ? 'is-active' : ''}
                   title={t('cellBorder')}
+                  aria-label={t('cellBorder')}
                   onClick={() => {
                     const idx = borderPopupIndex === toolbarIndex ? null : toolbarIndex
                     setBorderPopupIndex(idx)
@@ -727,6 +737,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                   type="button"
                   className="is-danger"
                   title={t('remove')}
+                  aria-label={t('remove')}
                   onClick={() => {
                     removePhoto(toolbarPhoto.id)
                     setSelectedIndex(null)
@@ -738,7 +749,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                 </button>
               </>
             ) : (
-              <button type="button" title={t('clickToAdd')} onClick={() => onPickFiles(toolbarIndex)}>
+              <button type="button" title={t('clickToAdd')} aria-label={t('clickToAdd')} onClick={() => onPickFiles(toolbarIndex)}>
                 <ImagePlus size={14} />
               </button>
             )}
@@ -794,16 +805,20 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
               </div>
             </div>
             <div className="seg" style={{ marginTop: 4 }}>
-              {(['inward', 'center', 'outward'] as const).map((dir) => (
-                <button
-                  key={dir}
-                  type="button"
-                  className={`seg-item${(store.cellBorders[solved.names[toolbarIndex]]?.direction ?? 'center') === dir ? ' is-active' : ''}`}
-                  onClick={() => store.updateCellBorder(solved.names[toolbarIndex], { direction: dir })}
-                >
-                  {dir === 'inward' ? t('cellBorderInward') : dir === 'outward' ? t('cellBorderOutward') : t('cellBorderCenter')}
-                </button>
-              ))}
+              {(['inward', 'center', 'outward'] as const).map((dir) => {
+                const dirLabel = dir === 'inward' ? t('cellBorderInward') : dir === 'outward' ? t('cellBorderOutward') : t('cellBorderCenter')
+                return (
+                  <button
+                    key={dir}
+                    type="button"
+                    className={`seg-item${(store.cellBorders[solved.names[toolbarIndex]]?.direction ?? 'center') === dir ? ' is-active' : ''}`}
+                    onClick={() => store.updateCellBorder(solved.names[toolbarIndex], { direction: dir })}
+                    aria-label={dirLabel}
+                  >
+                    {dirLabel}
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
@@ -820,7 +835,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
 
       {store.filledCount === 0 && (
         <div className="stage-empty">
-          <button type="button" className="btn btn-primary btn-lg stage-empty-btn" onClick={() => onPickFiles()}>
+          <button type="button" className="btn btn-primary btn-lg stage-empty-btn" onClick={() => onPickFiles()} aria-label={t('addPhotos')}>
             <Upload size={16} />
             {t('addPhotos')}
           </button>

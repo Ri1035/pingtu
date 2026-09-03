@@ -142,6 +142,24 @@ const zh: Record<string, Value> = {
   chip43: '4:3',
   chip34: '3:4',
   chip169: '16:9',
+
+  // —— 画布比例 ——
+  ratio11: '1:1',
+  ratio34: '3:4',
+  ratio916: '9:16',
+  ratio43: '4:3',
+  ratio169: '16:9',
+
+  // —— 导出面板中文化 ——
+  lossless: '无损',
+  pngLosslessHint: 'PNG 为无损格式，质量固定',
+  exportSizeHint: '导出后会显示实际文件大小',
+
+  // —— 样式面板 ——
+  styleHint: '边距 / 间距 / 圆角以 {base}px 宽为基准等比缩放，改变导出尺寸不会影响观感。',
+
+  // —— 字体面板 ——
+  fontGeneric: '通用',
 }
 
 const en: Record<string, Value> = {
@@ -280,6 +298,24 @@ const en: Record<string, Value> = {
   chip43: '4:3',
   chip34: '3:4',
   chip169: '16:9',
+
+  // —— Canvas ratios ——
+  ratio11: '1:1',
+  ratio34: '3:4',
+  ratio916: '9:16',
+  ratio43: '4:3',
+  ratio169: '16:9',
+
+  // —— Export panel ——
+  lossless: 'Lossless',
+  pngLosslessHint: 'PNG is lossless, quality is fixed',
+  exportSizeHint: 'Actual file size will be shown after export',
+
+  // —— Style panel ——
+  styleHint: 'Margin / spacing / radius are scaled proportionally based on {base}px width; changing export size does not affect the look.',
+
+  // —— Font panel ——
+  fontGeneric: 'Generic',
 }
 
 const DICTS: Record<Lang, Record<string, Value>> = { zh, en }

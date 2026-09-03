@@ -134,7 +134,4 @@ export async function detectFonts(): Promise<FontInfo[]> {
   return pending
 }
 
-/** 探测结果是否已就绪 */
-export function isFontCacheReady(): boolean {
-  return cache !== null
-}
+
