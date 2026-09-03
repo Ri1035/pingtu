@@ -11,7 +11,7 @@ import {
   Upload,
 } from 'lucide-react'
 import type { PhotoTransform, TextItem } from '../types'
-import { DEFAULT_TRANSFORM, computeRatio, drawCollage } from '../lib/render'
+import { DEFAULT_TRANSFORM, computeRatio, drawCollage, effectiveStyle } from '../lib/render'
 import { solveLayout } from '../lib/geometry'
 import type { CollageStore } from '../hooks/useCollage'
 import { useI18n } from '../i18n'
@@ -32,26 +32,53 @@ interface PointerRecord {
   y: number
 }
 
-const MIN_ZOOM = 1
+const MIN_ZOOM_LOOSE = 0.2 // 普通（留白）模式允许缩小的下限
+const MIN_ZOOM_SEAMLESS = 1 // 无缝模式：最小 cover 铺满，避免出现空白
 const MAX_ZOOM = 5
 const TAP_THRESHOLD = 5
 
-/** 计算某张图在格子里「可平移的余量」，用于把鼠标位移换算成偏移比例 */
-function computeOverflow(
+/**
+ * 计算某张图在格子里的平移几何，用于把鼠标位移换算成 offset 变化。
+ *
+ * 统一模型（与 render.drawPhoto 一致）：
+ *   图片绘制尺寸 dw = fit * zoom * pw
+ *   图片中心 = 格子中心 + offset * (cell - dw)    （offset ∈ [-0.5, 0.5]）
+ *
+ * 返回：
+ *   - slackX/slackY：中心可移动的像素范围（>0 表示该方向可平移）
+ *   - denomX/denomY：(cell - dw)，鼠标像素位移 → offset 增量的换算分母
+ *   - scale：图片实际绘制尺寸（用于 UI 显示缩放百分比）
+ */
+function computePanGeometry(
   cell: { w: number; h: number },
   photo: { width: number; height: number },
   transform: PhotoTransform,
-): { overflowX: number; overflowY: number } {
+): {
+  slackX: number
+  slackY: number
+  denomX: number
+  denomY: number
+  scale: number
+} {
   const quarter = ((transform.rotation % 360) + 360) % 360
   const swapped = quarter === 90 || quarter === 270
   const pw = swapped ? photo.height : photo.width
   const ph = swapped ? photo.width : photo.height
-  if (pw <= 0 || ph <= 0) return { overflowX: 0, overflowY: 0 }
+  if (pw <= 0 || ph <= 0) return { slackX: 0, slackY: 0, denomX: 0, denomY: 0, scale: 1 }
   const fit = transform.fit === 'contain' ? Math.min(cell.w / pw, cell.h / ph) : Math.max(cell.w / pw, cell.h / ph)
-  const scale = fit * Math.max(1, transform.zoom)
+  const zoom = Math.max(0.05, transform.zoom)
+  const scale = fit * zoom
+  const dw = pw * scale
+  const dh = ph * scale
+  const denomX = cell.w - dw
+  const denomY = cell.h - dh
+  // offset ∈ [-0.5, 0.5] → 中心位移范围 ∈ [-|denom|/2, |denom|/2]
   return {
-    overflowX: Math.max(0, pw * scale - cell.w),
-    overflowY: Math.max(0, ph * scale - cell.h),
+    slackX: Math.abs(denomX) / 2,
+    slackY: Math.abs(denomY) / 2,
+    denomX,
+    denomY,
+    scale,
   }
 }
 
@@ -59,6 +86,9 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
   const { t } = useI18n()
   const { scene, slots, updateTransform, resetTransform, removePhoto, swapSlots, texts, updateText, removeText } =
     store
+  const seamless = scene.style.seamless
+  // 无缝模式下不允许把图片缩到小于铺满（不留空白）；普通模式可缩小
+  const minZoom = seamless ? MIN_ZOOM_SEAMLESS : MIN_ZOOM_LOOSE
 
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -143,8 +173,10 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
   const solved = useMemo(() => {
     if (preview.w <= 0) return null
     const scale = preview.w / 1600
-    const margin = scene.style.margin * scale
-    const gap = scene.style.gap * scale
+    // 无缝模式下强制 0 间距/边距，与 render.drawCollage 的 effectiveStyle 保持一致
+    const style = effectiveStyle(scene.style)
+    const margin = style.margin * scale
+    const gap = style.gap * scale
     return solveLayout(
       scene.layout,
       { x: margin, y: margin, w: Math.max(1, preview.w - margin * 2), h: Math.max(1, preview.h - margin * 2) },
@@ -298,14 +330,14 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       if (!photo) return
       e.preventDefault()
       const current = (store.transforms[photo.id] ?? DEFAULT_TRANSFORM).zoom
-      const next = clamp(current * (1 - e.deltaY * 0.0016), MIN_ZOOM, MAX_ZOOM)
+      const next = clamp(current * (1 - e.deltaY * 0.0016), minZoom, MAX_ZOOM)
       if (next === current) return
       updateTransform(photo.id, { zoom: next })
       flashZoom(next)
     }
     canvas.addEventListener('wheel', onWheelNative, { passive: false })
     return () => canvas.removeEventListener('wheel', onWheelNative)
-  }, [indexAt, slots, store.transforms, updateTransform, flashZoom])
+  }, [indexAt, slots, store.transforms, updateTransform, flashZoom, minZoom])
 
   // —— 指针交互 ——
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -396,7 +428,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       if (photo && pinch.current.startDistance > 0) {
         const next = Math.min(
           MAX_ZOOM,
-          Math.max(MIN_ZOOM, (pinch.current.startZoom * distance) / pinch.current.startDistance),
+          Math.max(minZoom, (pinch.current.startZoom * distance) / pinch.current.startDistance),
         )
         updateTransform(photo.id, { zoom: next })
         flashZoom(next)
@@ -430,15 +462,21 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
     const cell = solved.cells[solved.names[g.areaIndex]]
     if (!cell) return
     const transform = store.transforms[photo.id] ?? DEFAULT_TRANSFORM
-    const { overflowX, overflowY } = computeOverflow(cell, photo, transform)
-    const scale = preview.w / (canvasRef.current?.getBoundingClientRect().width || preview.w)
-    const px = dx * scale
-    const py = dy * scale
+    const geo = computePanGeometry(cell, photo, transform)
+    // 屏幕 px → 预览设计 px（solved 的 cell 用 preview 设计坐标，与 canvas 显示尺寸一致）
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect || rect.width <= 0) return
+    const px = (dx / rect.width) * preview.w
+    const py = (dy / rect.height) * preview.h
 
-    updateTransform(photo.id, {
-      offsetX: overflowX > 0 ? clamp(g.startOffsetX - px / overflowX, -0.5, 0.5) : 0,
-      offsetY: overflowY > 0 ? clamp(g.startOffsetY - py / overflowY, -0.5, 0.5) : 0,
-    })
+    // offset ∈ [-0.5, 0.5]；denom 为 0（图片与格子同大）时不可平移
+    const nextOffsetX =
+      Math.abs(geo.denomX) < 0.5 ? 0 : clamp(g.startOffsetX + px / geo.denomX, -0.5, 0.5)
+    const nextOffsetY =
+      Math.abs(geo.denomY) < 0.5 ? 0 : clamp(g.startOffsetY + py / geo.denomY, -0.5, 0.5)
+    if (nextOffsetX !== transform.offsetX || nextOffsetY !== transform.offsetY) {
+      updateTransform(photo.id, { offsetX: nextOffsetX, offsetY: nextOffsetY })
+    }
   }
 
   const finishGesture = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -479,6 +517,15 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
   const toolbarCell = toolbarIndex != null && solved ? solved.cells[solved.names[toolbarIndex]] : null
   const toolbarTransform = toolbarPhoto ? (store.transforms[toolbarPhoto.id] ?? DEFAULT_TRANSFORM) : null
 
+  // ---------- 选中图片控制条（单图缩放 / 适应 / 居中 / 还原） ----------
+  const selectedPhoto = selectedIndex != null ? slots[selectedIndex] : null
+  const selectedCell = selectedIndex != null && solved ? solved.cells[solved.names[selectedIndex]] : null
+  const selectedTransform = selectedPhoto ? (store.transforms[selectedPhoto.id] ?? DEFAULT_TRANSFORM) : null
+  const selectedZoomPercent = selectedTransform
+    ? Math.round(((selectedTransform.zoom - minZoom) / (MAX_ZOOM - minZoom)) * 100)
+    : 100
+  const selectedZoomReal = selectedTransform ? Math.round(selectedTransform.zoom * 100) : 100
+
   return (
     <div
       className="stage-canvas"
@@ -517,6 +564,65 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
           onPointerCancel={finishGesture}
           style={{ cursor: toolbarPhoto ? 'grab' : 'pointer' }}
         />
+
+        {/* 选中单图时的调整控制条：缩放滑块 + 适应/居中/还原 */}
+        {selectedPhoto && selectedCell && selectedTransform && (
+          <div
+            className="slot-adjustbar"
+            style={{
+              left: selectedCell.x + selectedCell.w / 2,
+              top: selectedCell.y + selectedCell.h - 10,
+            }}
+            onPointerEnter={() => {
+              cancelHoverTimer()
+              if (hoverIndex !== selectedIndex) setHoverIndex(selectedIndex)
+            }}
+            onPointerLeave={() => scheduleClearHover()}
+          >
+            <input
+              type="range"
+              className="slider slider-mini"
+              min={0}
+              max={100}
+              step={1}
+              value={selectedZoomPercent}
+              aria-label={t('fitScale')}
+              onChange={(e) => {
+                const pct = Number(e.target.value)
+                const zoom = minZoom + (pct / 100) * (MAX_ZOOM - minZoom)
+                updateTransform(selectedPhoto.id, { zoom })
+                flashZoom(zoom)
+              }}
+            />
+            <span className="adjustbar-zoom">{selectedZoomReal}%</span>
+            <button
+              type="button"
+              className="adjustbar-btn"
+              title={t('fitCover')}
+              onClick={() =>
+                updateTransform(selectedPhoto.id, { fit: 'cover', zoom: 1, offsetX: 0, offsetY: 0 })
+              }
+            >
+              {t('fitCover')}
+            </button>
+            <button
+              type="button"
+              className="adjustbar-btn"
+              title={t('centerPhoto')}
+              onClick={() => updateTransform(selectedPhoto.id, { offsetX: 0, offsetY: 0 })}
+            >
+              {t('centerPhoto')}
+            </button>
+            <button
+              type="button"
+              className="adjustbar-btn"
+              title={t('resetView')}
+              onClick={() => resetTransform(selectedPhoto.id)}
+            >
+              <RefreshCw size={12} />
+            </button>
+          </div>
+        )}
 
         {toolbarCell && toolbarIndex != null && (
           <div

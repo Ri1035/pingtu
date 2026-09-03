@@ -23,6 +23,7 @@ export const DEFAULT_STYLE: CanvasStyle = {
   radius: 0,
   background: '#ffffff',
   transparent: false,
+  seamless: false,
 }
 
 export const DEFAULT_EXPORT: ExportOptions = {

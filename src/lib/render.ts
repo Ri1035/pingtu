@@ -50,9 +50,22 @@ export function computeRatio(scene: CollageScene): number {
   const { style, layout, slots } = scene
   if (style.ratio === 'auto') {
     const contentRatio = computeContentRatio(layout, slots)
-    return canvasRatioFromContent(contentRatio, BASE_WIDTH, style.margin)
+    // 无缝模式外边距归零，画布比例等于内容比例
+    const margin = style.seamless ? 0 : style.margin
+    return canvasRatioFromContent(contentRatio, BASE_WIDTH, margin)
   }
   return parseRatio(style.ratio, parseRatio(layout.suggestRatio))
+}
+
+/**
+ * 无缝拼图模式使用的「实际样式」：
+ * 图片之间及边缘的间距/留白/圆角全部强制为 0，图片紧密拼接。
+ * 用户存于 style 中的 margin/gap/radius 原值不动 —— 关闭无缝后立即恢复，
+ * 因此与原有留白模式完全兼容、互不污染。
+ */
+export function effectiveStyle(style: CanvasStyle): CanvasStyle {
+  if (!style.seamless) return style
+  return { ...style, margin: 0, gap: 0, radius: 0 }
 }
 
 /** 由宽度推算画布尺寸（高度由比例决定） */
@@ -122,18 +135,22 @@ function drawPhoto(
   if (pw <= 0 || ph <= 0) return
 
   // cover 铺满（可能裁切）；contain 完整显示（可能留白）
+  // zoom 允许 < 1：cover 下缩小会露边（配合背景/透明形成「缩小卡片」效果），
+  // contain 下缩小即完整小图 —— 都由 offset 约束边界、可格内平移。
   const fit =
     transform.fit === 'contain' ? Math.min(cell.w / pw, cell.h / ph) : Math.max(cell.w / pw, cell.h / ph)
-  const scale = fit * Math.max(1, transform.zoom)
+  const zoom = Math.max(0.05, transform.zoom)
+  const scale = fit * zoom
   const dw = pw * scale
   const dh = ph * scale
 
-  // 只有超出格子的部分才能被平移
-  const overflowX = Math.max(0, dw - cell.w)
-  const overflowY = Math.max(0, dh - cell.h)
-
-  const cx = cell.x + cell.w / 2 - transform.offsetX * overflowX
-  const cy = cell.y + cell.h / 2 - transform.offsetY * overflowY
+  // 统一平移公式：offset ∈ [-0.5, 0.5] 表示「图片中心相对格子中心的位移程度」。
+  //   图大于格 (dw>cell.w)：中心可动范围 = (dw-cell.w)/2 → 表现为裁切窗口平移；
+  //   图小于格 (dw<cell.w)：中心可动范围 = (cell.w-dw)/2 → 表现为格内平移（不越界）。
+  // 两情形可用同一公式表达：cx = centerX + offsetX * (cell.w - dw)
+  // （offset 符号约定：正值把图片中心向右移）
+  const cx = cell.x + cell.w / 2 + transform.offsetX * (cell.w - dw)
+  const cy = cell.y + cell.h / 2 + transform.offsetY * (cell.h - dh)
 
   ctx.save()
   roundRectPath(ctx, cell.x, cell.y, cell.w, cell.h, radius)
@@ -230,9 +247,11 @@ export function drawCollage(
 ): { width: number; height: number } {
   const { width, height } = computeCanvasSize(scene, canvasWidth)
   const scale = width / BASE_WIDTH
-  const margin = scene.style.margin * scale
-  const gap = scene.style.gap * scale
-  const radius = scene.style.radius * scale
+  // 无缝模式：间距/边距/圆角强制归零（用户原始值不动，关闭即恢复）
+  const style = effectiveStyle(scene.style)
+  const margin = style.margin * scale
+  const gap = style.gap * scale
+  const radius = style.radius * scale
 
   ctx.save()
   ctx.clearRect(0, 0, width, height)

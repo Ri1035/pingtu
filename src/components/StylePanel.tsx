@@ -38,16 +38,44 @@ export function StylePanel({ store }: { store: CollageStore }) {
         </div>
       </section>
 
-      <Field label={t('margin')} value={`${style.margin}px`}>
-        <Slider value={style.margin} min={0} max={120} onChange={(v) => setStyle({ margin: v })} />
+      <div className="divider" />
+
+      <section>
+        <div className="seamless-head">
+          <div>
+            <div className="field-label" style={{ fontWeight: 600 }}>{t('seamlessMode')}</div>
+            <div className="field-hint" style={{ marginTop: 4 }}>{t('seamlessHint')}</div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={style.seamless}
+            className={`switch${style.seamless ? ' is-on' : ''}`}
+            onClick={() => {
+              setStyle({ seamless: !style.seamless })
+            }}
+          />
+        </div>
+        {style.seamless && (
+          <div className="seamless-on-tip">
+            <span className="pill pill-accent">{t('seamlessModeOn')}</span>
+            <span className="field-hint">{t('seamlessOffHint')}</span>
+          </div>
+        )}
+      </section>
+
+      <div className="divider" />
+
+      <Field label={t('margin')} value={style.seamless ? '0px' : `${style.margin}px`}>
+        <Slider value={style.seamless ? 0 : style.margin} min={0} max={120} disabled={style.seamless} onChange={(v) => setStyle({ margin: v })} />
       </Field>
 
-      <Field label={t('gap')} value={`${style.gap}px`}>
-        <Slider value={style.gap} min={0} max={80} onChange={(v) => setStyle({ gap: v })} />
+      <Field label={t('gap')} value={style.seamless ? '0px' : `${style.gap}px`}>
+        <Slider value={style.seamless ? 0 : style.gap} min={0} max={80} disabled={style.seamless} onChange={(v) => setStyle({ gap: v })} />
       </Field>
 
-      <Field label={t('radius')} value={`${style.radius}px`}>
-        <Slider value={style.radius} min={0} max={120} onChange={(v) => setStyle({ radius: v })} />
+      <Field label={t('radius')} value={style.seamless ? '0px' : `${style.radius}px`}>
+        <Slider value={style.seamless ? 0 : style.radius} min={0} max={120} disabled={style.seamless} onChange={(v) => setStyle({ radius: v })} />
       </Field>
 
       <div className="divider" />
