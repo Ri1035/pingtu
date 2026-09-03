@@ -1,7 +1,7 @@
 {
   "name": "pingtu",
   "private": true,
-  "version": "1.5.0",
+  "version": "1.6.0",
   "type": "module",
   "description": "纯本地、无后端的在线图片合并 / 拼图编辑器（mergeimage.org 复刻版）",
   "keywords": [

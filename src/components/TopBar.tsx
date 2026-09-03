@@ -1,12 +1,13 @@
-import { Languages, ShieldCheck, RotateCcw } from 'lucide-react'
+import { Languages, ShieldCheck, RotateCcw, Info } from 'lucide-react'
 import { useI18n } from '../i18n'
 
 interface Props {
   onReset: () => void
   onToggleLang: () => void
+  onOpenAbout: () => void
 }
 
-export function TopBar({ onReset, onToggleLang }: Props) {
+export function TopBar({ onReset, onToggleLang, onOpenAbout }: Props) {
   const { t } = useI18n()
 
   return (
@@ -40,6 +41,11 @@ export function TopBar({ onReset, onToggleLang }: Props) {
       <button type="button" className="btn btn-ghost" onClick={onToggleLang} title={t('langSwitch')}>
         <Languages size={15} />
         {t('langSwitch')}
+      </button>
+
+      <button type="button" className="btn btn-ghost" onClick={onOpenAbout} title={t('about')}>
+        <Info size={15} />
+        {t('about')}
       </button>
 
       <button type="button" className="btn" onClick={onReset} title={t('newProject')}>

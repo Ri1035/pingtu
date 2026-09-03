@@ -5,13 +5,26 @@
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本（Semantic Versioning）](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [1.6.0] - 2026-09-03
 
 ### Added
-- （新功能在此记录）
+- **读取本机字体**：文字面板字体下拉下方新增「读取本机字体」按钮，优先调用 **Local Font Access API**（Chromium 103+，需用户授权）直接枚举本机全部已安装字体族；不支持的浏览器自动回退到原有 Canvas 测量探测法。授权结果（已读全 / 已拒绝 / 不支持）以提示文案明确反馈。
+- **水印功能（多种模板）**：左侧新增「水印」页签，支持在拼图最上层叠加版权 / 标识水印（预览与导出完全一致）：
+  - **内容类型**：文字水印（文字 / 字体 / 字号 / 颜色）与图片水印（上传 PNG 图 / 大小比例）。
+  - **排布方式**：平铺（斜向铺满、可调间距）与单个（可调水平 / 垂直位置）。
+  - **5 套内置模板**一键套用：平铺文字、居中文字、角标文字、平铺图片、居中图片；另有旋转、不透明度等微调项。
+- **开发者信息页面（准备分享）**：顶栏新增「关于」入口，弹窗展示开发者、联系方式（GitHub / 邮箱）、技术栈、开源协议等信息，并提供「复制分享链接」按钮——生成带 `#about` 锚点的地址，他人直接打开链接即可看到开发者信息页（`hashchange` 监听自动唤起）。
 
-### Fixed
-- （修复在此记录）
+### Changed
+- 新增 `WatermarkType` / `WatermarkMode` / `WatermarkConfig` 类型与 `lib/watermark.ts` 模板库；`CollageScene` 增加 `watermark` / `watermarkImage` 字段，`drawCollage` 末尾调用 `drawWatermark`（渲染在最上层）。
+- `lib/fonts.ts` 新增 `queryLocalFonts()`（封装 Local Font Access API 与回退逻辑）。
+- 版本号从 `v1.5.0` 升级到 `v1.6.0`。
+
+### Notes
+- 水印复用原生 Canvas 2D，未引入第三方库；文字与图片水印共用一套「平铺 / 单个 + 旋转 + 不透明度」渲染分支。
+- npm run typecheck / build 通过（gzip ≈ 89 KB）
+- 现有拼图 / 文字 / 素材库 / 修图编辑器 / 导出功能无回归
+- 开发者信息（`AboutModal.tsx` 内 `DEVELOPER_INFO`）为占位示例，正式分享前请按需替换为真实姓名 / 邮箱 / 主页链接。
 
 ## [1.5.0] - 2026-09-03
 
@@ -162,7 +175,7 @@
 ### Notes
 - 以 [esmcelroy/photo-grid-collage-maker](https://github.com/esmcelroy/photo-grid-collage-maker) 为主要架构参考，另调研并融合 3 个开源拼图项目的优点，详见 `README.md`。
 
-[Unreleased]: https://github.com/Ri1035/pingtu/compare/v1.5.0...HEAD
+[1.6.0]: https://github.com/Ri1035/pingtu/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/Ri1035/pingtu/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/Ri1035/pingtu/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Ri1035/pingtu/compare/v1.2.0...v1.3.0

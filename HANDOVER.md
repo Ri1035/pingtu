@@ -16,7 +16,7 @@
 | GitHub 仓库 | https://github.com/Ri1035/pingtu （分支 `main`，公开） |
 | 线上站点 | https://pingtu-ch8.pages.dev |
 | Cloudflare | 项目名 `pingtu`，账号 Koka2996978242@outlook.com，account id `f1b789793774805c136bd7dfc86febd4` |
-| 当前版本 | **v1.5.0**（package.json `"version": "1.5.0"`，tag `v1.5.0`） |
+| 当前版本 | **v1.6.0**（package.json `"version": "1.6.0"`，tag `v1.6.0`） |
 
 GitHub / Cloudflare 的 token **不存在仓库中**（均在 .gitignore 的 `.env*` 保护之外另行保管），
 部署时通过环境变量 `CLOUDFLARE_API_TOKEN` 注入。
@@ -46,18 +46,24 @@ src/
 │   │                          #   · drawPhoto 统一平移数学 cx = centerX + offsetX×(cell.w−dw)
 │   ├── export.ts              # 导出 PNG/JPEG/WebP（复用 drawCollage）
 │   ├── image.ts               # 文件解码/缩略图
-│   ├── fonts.ts               # 系统字体探测（Canvas 测量）
+│   ├── fonts.ts               # 系统字体探测（Canvas 测量）+ Local Font Access API 读取本机字体
+│   ├── watermark.ts           # 水印配置与内置模板（平铺/居中/角标文字、平铺/居中图片）
 │   ├── assetStore.ts          # 素材存储抽象层（IndexedDB，预留云后端）
 │   └── stickers.ts            # 内置 emoji 贴纸库
 └── components/
     ├── CollageStage.tsx       # 画布：hover 工具条（延迟消失）/ 选中控制条 / 缩放平移 / 文字拖拽
     ├── LayoutPanel / StylePanel / TextPanel / ExportPanel / PhotoTray / AssetPanel / AssetEditor / TopBar
+    ├── WatermarkPanel.tsx     # 水印面板（类型 / 排布 / 模板 / 微调）
+    ├── AboutModal.tsx         # 开发者信息弹窗（#about 分享链接）
     └── ui/Controls.tsx        # Field/Slider/Segmented/Switch/NumberInput
 ```
 
-## 4. 已实现功能（截至 v1.5.0）
+## 4. 已实现功能（截至 v1.6.0）
 
 - **基础**：1~16 张图、145 布局、画布比例、边距/间距/圆角/背景/透明、URL 同步 `?count=2&layout=0`、中英双语、localStorage 持久化
+- **读取本机字体（v1.6.0）**：文字面板可「读取本机字体」——优先 Local Font Access API 枚举本机全部字体，不支持时回退 Canvas 测量探测
+- **水印（v1.6.0）**：拼图最上层叠加水印（预览/导出一致），文字/图片两种类型、平铺/单个两种排布，5 套内置模板 + 旋转/不透明度/间距等微调
+- **开发者信息页（v1.6.0）**：顶栏「关于」弹窗（开发者/联系方式/技术栈/协议），可复制带 `#about` 锚点的分享链接，打开链接自动唤起该页
 - **图片**：点击多选批量、拖拽/粘贴上传（画布 + 托盘）、拖拽排序/点击交换、单张旋转/镜像/填充切换
 - **文字**：多图层文字叠加、系统字体选择、字号/颜色/粗斜/旋转、行距/字间距/对齐/下划线/描边/阴影/不透明度、画布拖拽/选中/删除
 - **浮层素材（v1.3.0 + v1.4.0 + v1.5.0）**：素材库「添加为浮层」叠加到拼图上；拖拽移动 + 大小(5%~800%)/旋转/不透明度滑条 + 滚轮缩放；v1.5.0 起支持给浮层加边框（宽度/颜色/实线·虚线·点线·双线）

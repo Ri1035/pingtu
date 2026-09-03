@@ -243,3 +243,42 @@ export interface AssetOverlay {
   /** 原始文件名 */
   name: string
 }
+
+/** 水印内容类型：文字 / 图片 */
+export type WatermarkType = 'text' | 'image'
+
+/** 水印排布方式：平铺铺满 / 单个放置 */
+export type WatermarkMode = 'tile' | 'single'
+
+/**
+ * 水印配置：叠加在整张拼图最上层的版权 / 标识。
+ * 文字与图片共用一套开关，按 type 走不同渲染分支。
+ */
+export interface WatermarkConfig {
+  /** 是否启用水印 */
+  enabled: boolean
+  /** 水印内容类型 */
+  type: WatermarkType
+  /** 排布方式 */
+  mode: WatermarkMode
+  /** 文字水印的文字内容 */
+  text: string
+  /** 文字水印字体 */
+  fontFamily: string
+  /** 文字水印字号（设计像素，以 BASE_WIDTH 为基准） */
+  fontSize: number
+  /** 文字颜色 */
+  color: string
+  /** 不透明度 0~1 */
+  opacity: number
+  /** 旋转角度（度） */
+  rotation: number
+  /** 平铺时相邻标记的额外间距（设计像素，相对文字字号 / 图片尺寸） */
+  spacing: number
+  /** 单个模式：水平位置 0~1（0 左，1 右） */
+  x: number
+  /** 单个模式：垂直位置 0~1（0 上，1 下） */
+  y: number
+  /** 图片水印：宽度占画布宽度的比例 0~1 */
+  imageScale: number
+}

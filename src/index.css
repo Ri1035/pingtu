@@ -1778,3 +1778,201 @@ input, select, textarea {
     height: 52px;
   }
 }
+
+/* ===== 15. 水印面板 ===== */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.template-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  color: var(--text-2);
+  font-size: 12.5px;
+  text-align: left;
+  transition: border-color 0.13s, background 0.13s, color 0.13s;
+}
+
+.template-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.watermark-image-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.watermark-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  flex: 0 0 auto;
+}
+
+/* ===== 16. 关于 / 开发者信息 ===== */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(15, 20, 28, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.about-modal {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  background: var(--panel);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 28px 26px 22px;
+  animation: about-in 0.22s var(--ease-out);
+}
+
+@keyframes about-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.about-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text-2);
+  padding: 0;
+  transition: background 0.12s, color 0.12s;
+}
+.about-close:hover { background: var(--bg-alt); color: var(--text); }
+
+.about-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.about-mark {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eef2ff, #fff);
+  border: 1px solid var(--border);
+}
+
+.about-title { margin: 0; font-size: 20px; font-weight: 700; }
+.about-sub { margin: 3px 0 0; font-size: 12.5px; color: var(--muted); }
+
+.about-intro {
+  margin: 0 0 18px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-2);
+}
+
+.about-section { margin-bottom: 16px; }
+
+.about-section-title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.about-developer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.about-avatar {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #0ea5e9);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.about-developer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.about-developer-meta strong { font-size: 14px; }
+.about-developer-meta span { font-size: 12.5px; color: var(--muted); }
+
+.about-links { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.about-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--panel-2);
+  color: var(--text-2);
+  font-size: 12.5px;
+  text-decoration: none;
+  transition: border-color 0.13s, color 0.13s, background 0.13s;
+}
+.about-link:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+.about-tech { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.about-chip {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-alt);
+  color: var(--text-2);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.about-license { margin: 2px 0 18px; font-size: 12px; color: var(--muted); }
+
+.about-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.about-actions .btn { min-width: 108px; }
+
+@media (max-width: 600px) {
+  .about-modal { padding: 22px 18px 18px; }
+}
