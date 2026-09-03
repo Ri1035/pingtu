@@ -8,7 +8,8 @@
 ## [Unreleased]
 
 ### Added
-- （待规划：自定义域名绑定、git push 自动触发 Cloudflare 部署等）
+- **网站图标（favicon）**：使用拼图四叶草图标替换默认 Vite 图标，涵盖 `favicon.ico`（16/32/48）、`favicon-16x16.png`、`favicon-32x32.png`、`apple-touch-icon.png`（180×180）、`favicon-192x192.png`、`favicon-512x512.png` 多尺寸，适配浏览器标签栏 / 收藏夹 / 移动端首屏 / PWA。
+- **Cloudflare Pages 接入 GitHub 自动部署**：项目与 GitHub 仓库 `Ri1035/pingtu` 完成绑定，此后 `git push` 到 `main` 分支自动触发 Cloudflare 构建发布，不再需要手动执行 `wrangler pages deploy`。
 
 ## [1.2.0] - 2026-09-03
 
