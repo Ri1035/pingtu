@@ -7,6 +7,14 @@
 
 ## [Unreleased]
 
+### Added
+- （新功能在此记录）
+
+### Fixed
+- （修复在此记录）
+
+## [1.3.0] - 2026-09-03
+
 ### Fixed
 - **悬停边框按钮点不到**：单格边框设置弹出框与工具栏分离，鼠标移动时会触发 pointerleave 导致工具栏消失。修复方案：将工具栏和边框弹出框放在同一个 `toolbar-group` 容器内，共享 pointerEnter/pointerLeave 事件，鼠标从工具栏移到弹出框不会丢失 hover 状态。
 - **i18n 全覆盖**：修复 `StylePanel` 画布比例按钮硬编码中文标签、底部样式提示中文；`ExportPanel` 中"无损"、"PNG 为无损格式"、"导出后会显示实际文件大小" 3 处硬编码文本；`TextPanel` 中错误引用 `t('ratioAuto')` 作为字体通用标签（改为 `t('fontGeneric')`）。
@@ -35,7 +43,17 @@
 - **单格边框设置**：悬停工具栏新增边框按钮（⬜），点击后弹出边框设置面板，支持宽度（0~20px，滑块调节）、颜色（颜色选择器）、方向（向内 / 居中 / 向外）三种模式。边框样式随格子缩放同比例缩放。
 - **一键清空素材库**：素材库面板新增清空按钮（红色 X 图标），点击后弹出确认对话框，确认后清空 IndexedDB 中所有素材数据并显示 toast 提示
 - **顶部栏图标与网站 favicon 一致**：将 `TopBar` 中的品牌图标从 lucide-react 的 `Images` 替换为 `favicon.svg` 的拼图 SVG 图案
-- **修改-部署-记录工作流程文档**：在 `HANDOVER.md` 第 6 节新增完整固定工作流程规范（修改前准备 → 开发修改 → 提交规范 → 记录 → 部署 → 备份），所有后续改动需先读取此文档
+- **修改-部署-记录工作流程文档**：在 `HANDOVER.md` 第 6 节新增完整固定工作流程规范（按版本号推进），所有后续改动需先读取此文档
+- **版本号显示**：在 `TopBar` 品牌名旁添加版本号标签（`v1.3.0`），用户界面可见
+- **版本号统一管理**：`package.json` → `i18n.ts(appVersion)` → 界面显示，三处联动，发版时同步更新
+
+### Changed
+- 版本号从 `v1.2.0` 升级到 `v1.3.0`
+- 工作流程改为按版本号推进：每次修改都归属到某个版本号，从 `package.json` 开始
+
+### Notes
+- npm run typecheck / build 通过
+- 现有拼图 / 文字 / 素材库 / 修图编辑器 / 导出功能无回归
 
 ## [1.2.0] - 2026-09-03
 
@@ -108,3 +126,9 @@
 
 ### Notes
 - 以 [esmcelroy/photo-grid-collage-maker](https://github.com/esmcelroy/photo-grid-collage-maker) 为主要架构参考，另调研并融合 3 个开源拼图项目的优点，详见 `README.md`。
+
+[Unreleased]: https://github.com/Ri1035/pingtu/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/Ri1035/pingtu/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/Ri1035/pingtu/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/Ri1035/pingtu/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/Ri1035/pingtu/releases/tag/v1.0.0
