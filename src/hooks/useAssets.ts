@@ -149,6 +149,16 @@ export function useAssets() {
     }
   }, [])
 
+  /** 清空所有素材 */
+  const clearAllAssets = useCallback(async () => {
+    try {
+      await getAssetBackend().clear()
+      setAssets([])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '清空素材库失败')
+    }
+  }, [])
+
   /** 清空错误提示 */
   const clearError = useCallback(() => setError(null), [])
 
@@ -161,6 +171,7 @@ export function useAssets() {
     addAssetFromBlob,
     saveEditedAsset,
     removeAsset,
+    clearAllAssets,
   }
 }
 

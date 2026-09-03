@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { FolderOpen, FolderSearch, Pencil, Plus, Trash2, Upload, ImagePlus, Sparkles } from 'lucide-react'
+import { FolderOpen, FolderSearch, Pencil, Plus, Trash2, Upload, ImagePlus, Sparkles, X } from 'lucide-react'
 import { useI18n } from '../i18n'
 import type { AssetItem } from '../types'
 import type { AssetStore } from '../hooks/useAssets'
@@ -34,7 +34,7 @@ function blobToImage(blob: Blob): Promise<HTMLImageElement> {
 
 export function AssetPanel({ assetStore, onAddFileToCollage, onAddAsOverlay }: Props) {
   const { t } = useI18n()
-  const { assets, loading, error, clearError, addAssetFromBlob, saveEditedAsset, removeAsset } = assetStore
+  const { assets, loading, error, clearError, addAssetFromBlob, saveEditedAsset, removeAsset, clearAllAssets } = assetStore
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
   const [editing, setEditing] = useState<{ asset: AssetItem; img: HTMLImageElement } | null>(null)
@@ -157,6 +157,20 @@ export function AssetPanel({ assetStore, onAddFileToCollage, onAddAsOverlay }: P
             {t('assetScanFolder')}
             {scanning && ` (${scannedCount})`}
           </button>
+          {assets.length > 0 && (
+            <button
+              type="button"
+              className="btn btn-icon btn-danger"
+              title={t('assetClearAll')}
+              onClick={() => {
+                if (window.confirm(t('assetClearAllConfirm'))) {
+                  void clearAllAssets().then(() => showToast(t('assetCleared')))
+                }
+              }}
+            >
+              <X size={15} />
+            </button>
+          )}
         </div>
         <div className="field-hint" style={{ textAlign: 'center', marginTop: 6 }}>
           {t('assetUploadHint')}
