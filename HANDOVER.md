@@ -84,13 +84,59 @@ node scripts/smoke-quick.mjs      # 5 大页签快速回归（连 4173）
 `npx vite --port 5173 --host 127.0.0.1` 或 `npx vite preview --port 4173 --host 127.0.0.1`。
 若脚本内 `rmSync(.smoke*)` 被环境拦截，先手动 `rm -rf .smoke*`。
 
-## 6. 版本发布流程（务必遵守）
+## 6. 固定工作流程：修改-部署-记录（**每次必遵守**）
 
-1. 改动前：`git status -sb` 确认干净，明确回退锚点（当前 commit/tag）
-2. 改代码 → 本地验证（typecheck/build/相关 smoke）→ **分门别类提交**（feat:/fix:/docs:）
-3. 发版时：更新 `CHANGELOG.md`（Keep a Changelog）+ `package.json` 版本号
-   → `git tag -a vX.Y.Z -m "..."` → 推送 `git push origin main --tags`
-4. **CHANGELOG 中「Unreleased」段随时记录，发版时归档**；本次迭代历史见 git log
+### 6.1 修改前（必做）
+
+1. 读取本文档 `HANDOVER.md` 和 `CHANGELOG.md`，了解当前版本状态和约定规范
+2. `git status -sb` 确认工作区干净，如有未提交改动先处理，明确回退锚点
+3. 记录当前 HEAD：`git rev-parse HEAD` → 可写在临时备忘，错了方便回退
+
+### 6.2 开发修改中
+
+1. 按需求改代码，遵循既有代码风格和架构约定（见第 3 节）
+2. 本地验证：
+   - `npm run typecheck` → 类型检查通过才能继续
+   - `npm run build` → 生产构建成功
+   - 功能冒烟：相关 smoke 脚本跑一遍（比如素材库改动跑 `smoke-assets.mjs`）
+3. 每完成一个独立功能/修复做一次 commit，**不要把多个不同改动堆在一起**
+
+### 6.3 提交规范
+
+遵循 [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>[scope]: <description>
+
+- 改动 1 要点
+- 改动 2 要点
+```
+
+常用 type：
+- `feat`: 新增功能
+- `fix`: 修复 bug
+- `refactor`: 重构（不新增不修复）
+- `docs`: 文档/注释
+- `style`: 格式/缩进等不影响运行的改动
+- `chore`: 构建/脚本/依赖
+
+### 6.4 记录
+
+1. 在 `CHANGELOG.md` 的 `Unreleased` 段添加本次改动记录
+2. 如果是大版本发布（功能合入完成），把 `Unreleased` 归档到新版本号下
+3. 更新 `package.json` 中 `version` 版本号（语义化版本：主版本.次版本.修订）
+
+### 6.5 部署
+
+1. 提交完成后，推送 `git push origin main`
+2. 项目绑定 Cloudflare Pages，**推送 main 自动触发构建部署**，等待几分钟即可
+3. 部署完成后，线上地址 https://pingtu-ch8.pages.dev 验证功能
+4. 如需打正式版标签：`git tag -a vX.Y.Z -m "version X.Y.Z"` → `git push origin main --tags`
+
+### 6.6 备份
+
+- GitHub 仓库本身就是备份，无需额外操作
+- 重要改动发布后保留 tag，方便回滚
 
 ### 既有 tag
 
