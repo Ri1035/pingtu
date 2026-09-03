@@ -8,7 +8,8 @@
 ## [Unreleased]
 
 ### Added
-- **网站图标（favicon）**：使用拼图四叶草图标替换默认 Vite 图标，涵盖 `favicon.ico`（16/32/48）、`favicon-16x16.png`、`favicon-32x32.png`、`apple-touch-icon.png`（180×180）、`favicon-192x192.png`、`favicon-512x512.png` 多尺寸，适配浏览器标签栏 / 收藏夹 / 移动端首屏 / PWA。
+- **网站图标（favicon）**：使用拼图四叶草图标 SVG 替换为新的风格图标，优先使用矢量 SVG 格式（`favicon.svg`），同时保留 `favicon.ico`（16/32/48）、`favicon-16x16.png`、`favicon-32x32.png`、`apple-touch-icon.png`（180×180）、`favicon-192x192.png`、`favicon-512x512.png` 多尺寸回退，适配浏览器标签栏 / 收藏夹 / 移动端首屏 / PWA。
+- **素材库支持扫描本地文件夹**：素材库面板新增「扫描文件夹」按钮，调用浏览器文件系统 API 让用户选择本地图片文件夹，自动过滤并批量导入所有支持的图片格式（JPEG / PNG / GIF / WebP / BMP / SVG / TIFF / HEIC / AVIF 等），导入过程实时显示进度。刷新页面后需重新选择文件夹（浏览器权限限制，不作持久化）。
 - **Cloudflare Pages 接入 GitHub 自动部署**：项目与 GitHub 仓库 `Ri1035/pingtu` 完成绑定，此后 `git push` 到 `main` 分支自动触发 Cloudflare 构建发布，不再需要手动执行 `wrangler pages deploy`。
 
 ## [1.2.0] - 2026-09-03
