@@ -12,7 +12,7 @@
 
 | 项 | 值 |
 | --- | --- |
-| 本地源码 | `C:\Users\KOKA\Desktop\拼图\merge-image` |
+| 本地源码 | `/data/user/work/pingtu` |
 | GitHub 仓库 | https://github.com/Ri1035/pingtu （分支 `main`，公开） |
 | 线上站点 | https://pingtu-ch8.pages.dev |
 | Cloudflare | 项目名 `pingtu`，账号 Koka2996978242@outlook.com，account id `f1b789793774805c136bd7dfc86febd4` |

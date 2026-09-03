@@ -673,7 +673,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                 </button>
                 <button
                   type="button"
-                  title={toolbarTransform.fit === 'cover' ? '完整显示' : '铺满裁切'}
+                  title={toolbarTransform.fit === 'cover' ? t('fitContain') : t('fitCover')}
                   onClick={() =>
                     updateTransform(toolbarPhoto.id, { fit: toolbarTransform.fit === 'cover' ? 'contain' : 'cover' })
                   }
@@ -691,7 +691,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                     const cellName = solved?.names[toolbarIndex]
                     if (!cellName) return
                     const cur = store.cellSizes[cellName] ?? { w: 1, h: 1 }
-                    store.updateCellSize(cellName, { w: cur.w * 1.15, h: cur.h * 1.15 })
+                    store.updateCellSize(cellName, { w: Math.min(3, cur.w * 1.15), h: Math.min(3, cur.h * 1.15) })
                   }}
                 >
                   <Plus size={14} />
