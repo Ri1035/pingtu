@@ -71,6 +71,18 @@ const zh: Record<string, Value> = {
   swapHint: '再点另一个格子即可交换两张图片',
   panHint: '拖拽可平移，滚轮可缩放',
 
+  // 单格调整
+  cellEnlarge: '放大格子',
+  cellShrink: '缩小格子',
+  cellBorder: '边框',
+  cellBorderWidth: '边框宽度',
+  cellBorderColor: '边框颜色',
+  cellBorderInward: '向内',
+  cellBorderOutward: '向外',
+  cellBorderCenter: '居中',
+  // 浮层素材
+  addAsOverlay: '添加为浮层',
+
   zoom: '缩放',
   unsupportedWebp: '当前浏览器不支持 WebP，已自动改用 PNG',
   exportFailed: '导出失败',
@@ -195,6 +207,18 @@ const en: Record<string, Value> = {
   moveRight: 'Move later',
   swapHint: 'Click another cell to swap the two photos',
   panHint: 'Drag to pan · scroll to zoom',
+
+  // Cell adjustment
+  cellEnlarge: 'Enlarge cell',
+  cellShrink: 'Shrink cell',
+  cellBorder: 'Border',
+  cellBorderWidth: 'Border width',
+  cellBorderColor: 'Border color',
+  cellBorderInward: 'Inward',
+  cellBorderOutward: 'Outward',
+  cellBorderCenter: 'Center',
+  // Overlay asset
+  addAsOverlay: 'Add as overlay',
 
   zoom: 'Zoom',
   unsupportedWebp: 'WebP is not supported here — falling back to PNG',

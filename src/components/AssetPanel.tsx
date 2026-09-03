@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { FolderOpen, FolderSearch, Pencil, Plus, Trash2, Upload, ImagePlus } from 'lucide-react'
+import { FolderOpen, FolderSearch, Pencil, Plus, Trash2, Upload, ImagePlus, Sparkles } from 'lucide-react'
 import { useI18n } from '../i18n'
 import type { AssetItem } from '../types'
 import type { AssetStore } from '../hooks/useAssets'
@@ -10,6 +10,8 @@ interface Props {
   assetStore: AssetStore
   /** 把图片文件加入拼图托盘 */
   onAddFileToCollage: (file: File) => void
+  /** 添加为覆盖层 */
+  onAddAsOverlay?: (file: File, thumb: string, width: number, height: number) => void
 }
 
 /** 解码 Blob 为 HTMLImageElement */
@@ -30,7 +32,7 @@ function blobToImage(blob: Blob): Promise<HTMLImageElement> {
   })
 }
 
-export function AssetPanel({ assetStore, onAddFileToCollage }: Props) {
+export function AssetPanel({ assetStore, onAddFileToCollage, onAddAsOverlay }: Props) {
   const { t } = useI18n()
   const { assets, loading, error, clearError, addAssetFromBlob, saveEditedAsset, removeAsset } = assetStore
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -225,6 +227,19 @@ export function AssetPanel({ assetStore, onAddFileToCollage }: Props) {
                   <button type="button" className="btn btn-icon" title={t('assetEditHint')} onClick={() => void openEditor(asset)}>
                     <Pencil size={13} />
                   </button>
+                  {onAddAsOverlay && (
+                    <button
+                      type="button"
+                      className="btn btn-icon"
+                      title={t('addAsOverlay')}
+                      onClick={() => {
+                        const file = new File([asset.blob], asset.name, { type: asset.blob.type || 'image/png' })
+                        onAddAsOverlay(file, asset.thumb, asset.width, asset.height)
+                      }}
+                    >
+                      <Sparkles size={13} />
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="btn btn-icon"

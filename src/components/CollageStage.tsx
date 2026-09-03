@@ -9,6 +9,9 @@ import {
   RefreshCw,
   Trash2,
   Upload,
+  Plus,
+  Minus,
+  Square,
 } from 'lucide-react'
 import type { PhotoTransform, TextItem } from '../types'
 import { DEFAULT_TRANSFORM, computeRatio, drawCollage, effectiveStyle } from '../lib/render'
@@ -97,6 +100,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [zoomHint, setZoomHint] = useState<string | null>(null)
   const [isDropping, setIsDropping] = useState(false)
+  const [borderPopupIndex, setBorderPopupIndex] = useState<number | null>(null)
 
   /**
    * 悬浮菜单「延迟消失」机制：
@@ -636,7 +640,10 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
               cancelHoverTimer()
               setHoverIndex(toolbarIndex)
             }}
-            onPointerLeave={() => scheduleClearHover()}
+            onPointerLeave={() => {
+              scheduleClearHover()
+              setBorderPopupIndex(null)
+            }}
           >
             {toolbarPhoto && toolbarTransform ? (
               <>
@@ -676,6 +683,46 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                 <button type="button" title={t('resetView')} onClick={() => resetTransform(toolbarPhoto.id)}>
                   <RefreshCw size={14} />
                 </button>
+                {/* 单格放大 */}
+                <button
+                  type="button"
+                  title={t('cellEnlarge')}
+                  onClick={() => {
+                    const cellName = solved?.names[toolbarIndex]
+                    if (!cellName) return
+                    const cur = store.cellSizes[cellName] ?? { w: 1, h: 1 }
+                    store.updateCellSize(cellName, { w: cur.w * 1.15, h: cur.h * 1.15 })
+                  }}
+                >
+                  <Plus size={14} />
+                </button>
+                {/* 单格缩小 */}
+                <button
+                  type="button"
+                  title={t('cellShrink')}
+                  onClick={() => {
+                    const cellName = solved?.names[toolbarIndex]
+                    if (!cellName) return
+                    const cur = store.cellSizes[cellName] ?? { w: 1, h: 1 }
+                    const nw = Math.max(0.3, cur.w / 1.15)
+                    const nh = Math.max(0.3, cur.h / 1.15)
+                    store.updateCellSize(cellName, { w: nw, h: nh })
+                  }}
+                >
+                  <Minus size={14} />
+                </button>
+                {/* 边框 */}
+                <button
+                  type="button"
+                  className={store.cellBorders[solved!.names[toolbarIndex]]?.width > 0 ? 'is-active' : ''}
+                  title={t('cellBorder')}
+                  onClick={() => {
+                    const idx = borderPopupIndex === toolbarIndex ? null : toolbarIndex
+                    setBorderPopupIndex(idx)
+                  }}
+                >
+                  <Square size={14} />
+                </button>
                 <button
                   type="button"
                   className="is-danger"
@@ -684,6 +731,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                     removePhoto(toolbarPhoto.id)
                     setSelectedIndex(null)
                     setHoverIndex(null)
+                    setBorderPopupIndex(null)
                   }}
                 >
                   <Trash2 size={14} />
@@ -694,6 +742,69 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                 <ImagePlus size={14} />
               </button>
             )}
+          </div>
+        )}
+
+        {/* 边框设置弹出面板 */}
+        {borderPopupIndex != null && solved && toolbarIndex != null && borderPopupIndex === toolbarIndex && (
+          <div
+            className="border-popup"
+            style={{
+              left: toolbarCell!.x + toolbarCell!.w / 2,
+              top: toolbarCell!.y + 50,
+            }}
+            onPointerEnter={() => {
+              cancelHoverTimer()
+              setHoverIndex(toolbarIndex)
+            }}
+            onPointerLeave={() => {
+              scheduleClearHover()
+              setBorderPopupIndex(null)
+            }}
+          >
+            <div className="field">
+              <div className="field-head">
+                <span className="field-label">{t('cellBorderWidth')}</span>
+                <span className="field-value">{store.cellBorders[solved.names[toolbarIndex]]?.width ?? 0}px</span>
+              </div>
+              <input
+                type="range"
+                className="slider"
+                min={0}
+                max={20}
+                step={1}
+                value={store.cellBorders[solved.names[toolbarIndex]]?.width ?? 0}
+                onChange={(e) => {
+                  const v = Number(e.target.value)
+                  store.updateCellBorder(solved.names[toolbarIndex], { width: v })
+                }}
+              />
+            </div>
+            <div className="field">
+              <span className="field-label">{t('cellBorderColor')}</span>
+              <div className="color-row">
+                <input
+                  type="color"
+                  className="swatch"
+                  value={store.cellBorders[solved.names[toolbarIndex]]?.color ?? '#000000'}
+                  onChange={(e) => {
+                    store.updateCellBorder(solved.names[toolbarIndex], { color: e.target.value })
+                  }}
+                />
+              </div>
+            </div>
+            <div className="seg" style={{ marginTop: 4 }}>
+              {(['inward', 'center', 'outward'] as const).map((dir) => (
+                <button
+                  key={dir}
+                  type="button"
+                  className={`seg-item${(store.cellBorders[solved.names[toolbarIndex]]?.direction ?? 'center') === dir ? ' is-active' : ''}`}
+                  onClick={() => store.updateCellBorder(solved.names[toolbarIndex], { direction: dir })}
+                >
+                  {dir === 'inward' ? t('cellBorderInward') : dir === 'outward' ? t('cellBorderOutward') : t('cellBorderCenter')}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

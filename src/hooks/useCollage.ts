@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { CanvasStyle, ExportOptions, GridLayout, PhotoItem, PhotoTransform, TextItem } from '../types'
+import type { AssetOverlay, CanvasStyle, CellBorder, CellSizeScale, ExportOptions, GridLayout, PhotoItem, PhotoTransform, TextItem } from '../types'
 import { getLayoutsForCount, MAX_COUNT, MIN_COUNT } from '../lib/layouts'
 import { DEFAULT_TRANSFORM, type CollageScene } from '../lib/render'
 import { loadImageFiles, disposePhoto } from '../lib/image'
@@ -80,6 +80,9 @@ export function useCollage() {
   const [photos, setPhotos] = useState<PhotoItem[]>([])
   const [transforms, setTransforms] = useState<Record<string, PhotoTransform>>({})
   const [texts, setTexts] = useState<TextItem[]>([])
+  const [cellBorders, setCellBorders] = useState<Record<string, CellBorder>>({})
+  const [cellSizes, setCellSizes] = useState<Record<string, CellSizeScale>>({})
+  const [overlays, setOverlays] = useState<AssetOverlay[]>([])
   const [style, setStyleRaw] = useState<CanvasStyle>(persisted.style)
   const [exportOptions, setExportOptionsRaw] = useState<ExportOptions>(persisted.exportOptions)
   const [notice, setNotice] = useState<string | null>(null)
@@ -209,6 +212,9 @@ export function useCollage() {
     })
     setTransforms({})
     setTexts([])
+    setCellBorders({})
+    setCellSizes({})
+    setOverlays([])
   }, [])
 
   // —— 文字图层 ——
@@ -244,6 +250,55 @@ export function useCollage() {
     setTexts([])
   }, [])
 
+  // —— 单格边框 ——
+  const updateCellBorder = useCallback((cellName: string, patch: Partial<CellBorder>) => {
+    setCellBorders((prev) => ({
+      ...prev,
+      [cellName]: { ...(prev[cellName] ?? { width: 0, color: '#000000', direction: 'center' }), ...patch },
+    }))
+  }, [])
+
+  const removeCellBorder = useCallback((cellName: string) => {
+    setCellBorders((prev) => {
+      const next = { ...prev }
+      delete next[cellName]
+      return next
+    })
+  }, [])
+
+  // —— 单格大小 ——
+  const updateCellSize = useCallback((cellName: string, patch: Partial<CellSizeScale>) => {
+    setCellSizes((prev) => ({
+      ...prev,
+      [cellName]: { ...(prev[cellName] ?? { w: 1, h: 1 }), ...patch },
+    }))
+  }, [])
+
+  const resetCellSize = useCallback((cellName: string) => {
+    setCellSizes((prev) => {
+      const next = { ...prev }
+      delete next[cellName]
+      return next
+    })
+  }, [])
+
+  // —— 浮层素材 ——
+  const addOverlay = useCallback((overlay: AssetOverlay) => {
+    setOverlays((prev) => [...prev, overlay])
+  }, [])
+
+  const updateOverlay = useCallback((id: string, patch: Partial<AssetOverlay>) => {
+    setOverlays((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)))
+  }, [])
+
+  const removeOverlay = useCallback((id: string) => {
+    setOverlays((prev) => prev.filter((o) => o.id !== id))
+  }, [])
+
+  const clearOverlays = useCallback(() => {
+    setOverlays([])
+  }, [])
+
   /** 与格子顺序对齐的槽位（不足为 null） */
   const slots = useMemo<(PhotoItem | null)[]>(() => {
     const names: string[] = []
@@ -256,8 +311,8 @@ export function useCollage() {
   }, [layout, photos])
 
   const scene: CollageScene = useMemo(
-    () => ({ layout, slots, transforms, style, texts }),
-    [layout, slots, transforms, style, texts],
+    () => ({ layout, slots, transforms, style, texts, cellBorders, cellSizes, overlays }),
+    [layout, slots, transforms, style, texts, cellBorders, cellSizes, overlays],
   )
 
   const filledCount = slots.filter(Boolean).length
@@ -293,6 +348,20 @@ export function useCollage() {
     updateText,
     removeText,
     clearTexts,
+    // 单格边框
+    cellBorders,
+    updateCellBorder,
+    removeCellBorder,
+    // 单格大小
+    cellSizes,
+    updateCellSize,
+    resetCellSize,
+    // 浮层素材
+    overlays,
+    addOverlay,
+    updateOverlay,
+    removeOverlay,
+    clearOverlays,
     // 样式与导出
     style,
     setStyle,

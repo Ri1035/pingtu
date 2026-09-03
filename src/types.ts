@@ -159,3 +159,50 @@ export interface StickerItem {
   /** 是否为 emoji（决定字体渲染方式） */
   isEmoji: boolean
 }
+
+/**
+ * 单个格子的边框设置。
+ */
+export interface CellBorder {
+  /** 边框宽度（设计像素，以 BASE_WIDTH 为基准） */
+  width: number
+  /** 边框颜色 */
+  color: string
+  /** 边框方向：向内 / 向外 / 居中 */
+  direction: 'inward' | 'outward' | 'center'
+}
+
+/**
+ * 单个格子的大小缩放倍率（1 = 原始大小）。
+ */
+export interface CellSizeScale {
+  w: number
+  h: number
+}
+
+/**
+ * 浮在拼图画布之上的素材图层。
+ * 与 TextItem 类似，但显示的是图片而非文字。
+ */
+export interface AssetOverlay {
+  id: string
+  /** 素材缩略图 dataURL */
+  thumb: string
+  /** 原始像素宽高 */
+  width: number
+  height: number
+  /** 水平位置，相对画布宽度的比例 0~1 */
+  x: number
+  /** 垂直位置，相对画布高度的比例 0~1 */
+  y: number
+  /** 缩放倍率 */
+  scale: number
+  /** 旋转角度（度） */
+  rotation: number
+  /** 透明度 0~1 */
+  opacity: number
+  /** 图片的 HTMLImageElement，用于绘制 */
+  source: HTMLImageElement
+  /** 原始文件名 */
+  name: string
+}
