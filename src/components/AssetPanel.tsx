@@ -180,7 +180,7 @@ export function AssetPanel({ assetStore, onAddFileToCollage, onAddAsOverlay }: P
            type="file"
            accept="image/*"
            hidden
-           {...({ webkitdirectory: '', directory: '', mozdirectory: '' } as any)}
+           {...({ webkitdirectory: '', directory: '' } as React.InputHTMLAttributes<HTMLInputElement>)}
            onChange={(e) => {
              void handleFiles(e.target.files)
              e.target.value = ''

@@ -92,7 +92,8 @@ const zh: Record<string, Value> = {
 
   // —— 单图自由调整（无缝模式配套） ——
   fitScale: '缩放',
-  fitCover: '适应框体',
+  fitCover: '铺满裁切',
+  fitContain: '完整显示',
   centerPhoto: '居中',
   seamlessMode: '无缝拼图',
   seamlessModeOn: '已开启',
@@ -229,7 +230,8 @@ const en: Record<string, Value> = {
 
   // —— Per-photo adjustment (seamless mode) ——
   fitScale: 'Scale',
-  fitCover: 'Fit cell',
+  fitCover: 'Fill crop',
+  fitContain: 'Fit full',
   centerPhoto: 'Center',
   seamlessMode: 'Seamless',
   seamlessModeOn: 'On',
