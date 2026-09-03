@@ -16,7 +16,7 @@
 | GitHub 仓库 | https://github.com/Ri1035/pingtu （分支 `main`，公开） |
 | 线上站点 | https://pingtu-ch8.pages.dev |
 | Cloudflare | 项目名 `pingtu`，账号 Koka2996978242@outlook.com，account id `f1b789793774805c136bd7dfc86febd4` |
-| 当前版本 | **v1.2.0**（package.json `"version": "1.2.0"`，tag `v1.2.0`） |
+| 当前版本 | **v1.3.0**（package.json `"version": "1.3.0"`，tag `v1.3.0`） |
 
 GitHub / Cloudflare 的 token **不存在仓库中**（均在 .gitignore 的 `.env*` 保护之外另行保管），
 部署时通过环境变量 `CLOUDFLARE_API_TOKEN` 注入。
@@ -84,13 +84,16 @@ node scripts/smoke-quick.mjs      # 5 大页签快速回归（连 4173）
 `npx vite --port 5173 --host 127.0.0.1` 或 `npx vite preview --port 4173 --host 127.0.0.1`。
 若脚本内 `rmSync(.smoke*)` 被环境拦截，先手动 `rm -rf .smoke*`。
 
-## 6. 固定工作流程：修改-部署-记录（**每次必遵守**）
+## 6. 固定工作流程：修改-部署-记录（**每次必遵守，按版本号推进**）
+
+> **核心原则**：每次修改都要归属到某个版本号，从 `package.json` 的版本号开始，按版本号推进、提交、记录、部署。
 
 ### 6.1 修改前（必做）
 
 1. 读取本文档 `HANDOVER.md` 和 `CHANGELOG.md`，了解当前版本状态和约定规范
-2. `git status -sb` 确认工作区干净，如有未提交改动先处理，明确回退锚点
-3. 记录当前 HEAD：`git rev-parse HEAD` → 可写在临时备忘，错了方便回退
+2. 确认当前版本号：`cat package.json | grep version` → 比如当前是 `1.3.0`
+3. `git status -sb` 确认工作区干净，如有未提交改动先处理，明确回退锚点
+4. 记录当前 HEAD：`git rev-parse HEAD` → 可写在临时备忘，错了方便回退
 
 ### 6.2 开发修改中
 
@@ -120,23 +123,38 @@ node scripts/smoke-quick.mjs      # 5 大页签快速回归（连 4173）
 - `style`: 格式/缩进等不影响运行的改动
 - `chore`: 构建/脚本/依赖
 
-### 6.4 记录
+### 6.4 版本号推进与记录
 
-1. 在 `CHANGELOG.md` 的 `Unreleased` 段添加本次改动记录
-2. 如果是大版本发布（功能合入完成），把 `Unreleased` 归档到新版本号下
-3. 更新 `package.json` 中 `version` 版本号（语义化版本：主版本.次版本.修订）
+1. **版本号规则**（语义化版本）：
+   - `package.json` 中的 `version` 字段是唯一版本号来源
+   - `src/i18n.ts` 中的 `appVersion` 与 `package.json` 保持一致
+   - 界面右上角品牌名旁显示当前版本号，用户可见
+   - 主版本.次版本.修订（例：`1.3.0`）
+   - 重要功能新增 → 加 **次版本**（如 `1.3.0` → `1.4.0`）
+   - 小修小补 → 加 **修订号**（如 `1.3.0` → `1.3.1`）
+
+2. **每次改动都要记入 `CHANGELOG.md`**：
+   - 在 `Unreleased` 段添加本次改动记录
+   - 改什么、为什么改、怎么改，写清楚
+   - 发版时把 `Unreleased` 归档到新版本号下
+
+3. **发版时同步更新三处**：
+   - `package.json` 中的 `version`
+   - `src/i18n.ts` 中的 `appVersion`
+   - `CHANGELOG.md` 归档
 
 ### 6.5 部署
 
 1. 提交完成后，推送 `git push origin main`
 2. 项目绑定 Cloudflare Pages，**推送 main 自动触发构建部署**，等待几分钟即可
 3. 部署完成后，线上地址 https://pingtu-ch8.pages.dev 验证功能
-4. 如需打正式版标签：`git tag -a vX.Y.Z -m "version X.Y.Z"` → `git push origin main --tags`
+4. 部署成功后打 tag：`git tag -a v1.3.0 -m "v1.3.0: 功能名称"` → `git push origin main --tags`
 
 ### 6.6 备份
 
 - GitHub 仓库本身就是备份，无需额外操作
-- 重要改动发布后保留 tag，方便回滚
+- 每次发布后保留 tag，方便回滚到任意版本
+- tag 列表：`git tag -l`
 
 ### 既有 tag
 

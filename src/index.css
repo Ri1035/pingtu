@@ -167,6 +167,18 @@ input, select, textarea {
   line-height: 1.15;
 }
 
+.brand-version {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--bg-alt);
+  border-radius: var(--radius-pill);
+  line-height: 1;
+}
+
 .topbar-spacer { flex: 1; }
 
 .topbar-note {
@@ -1554,6 +1566,10 @@ input, select, textarea {
   }
 
   .brand-sub {
+    display: none;
+  }
+
+  .brand-version {
     display: none;
   }
 

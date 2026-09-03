@@ -26,6 +26,7 @@ export function TopBar({ onReset, onToggleLang }: Props) {
         <span className="brand-text">
           <span className="brand-title">{t('appTitle')}</span>
           <span className="brand-sub">{t('appTagline')}</span>
+          <span className="brand-version">{t('appVersion')}</span>
         </span>
       </div>
 

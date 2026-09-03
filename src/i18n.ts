@@ -9,6 +9,7 @@ type Value = string | ((n: number) => string)
 const zh: Record<string, Value> = {
   appTitle: '拼图编辑器',
   appTagline: '本地处理 · 图片不上传',
+  appVersion: 'v1.3.0',
 
   tabLayout: '布局',
   tabStyle: '样式',
@@ -168,6 +169,7 @@ const zh: Record<string, Value> = {
 const en: Record<string, Value> = {
   appTitle: 'Collage Editor',
   appTagline: 'Runs locally · never uploaded',
+  appVersion: 'v1.3.0',
 
   tabLayout: 'Layout',
   tabStyle: 'Style',
