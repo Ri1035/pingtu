@@ -105,7 +105,11 @@ const zh: Record<string, Value> = {
 
   // —— 素材库 ——
   assetUpload: '上传素材',
-  assetUploadHint: '支持多选，素材仅保存在本机浏览器（可反复使用）',
+  assetScanFolder: '扫描文件夹',
+  assetUploadHint: '支持多选或直接扫描文件夹，素材仅保存在本机浏览器（可反复使用）',
+  assetFolderHint: '选择本地图片文件夹批量导入（浏览器刷新后需重新选择）',
+  assetFolderScanDone: (n) => `已从文件夹导入 ${n} 张图片`,
+  assetFolderNoImages: '文件夹中未找到支持的图片格式',
   assetLoading: '正在加载素材…',
   assetEmpty: '素材库还是空的',
   assetEditHint: '编辑素材',
@@ -226,7 +230,11 @@ const en: Record<string, Value> = {
 
   // —— Asset library ——
   assetUpload: 'Upload asset',
-  assetUploadHint: 'Multi-select supported. Assets stay in this browser and can be reused',
+  assetScanFolder: 'Scan folder',
+  assetUploadHint: 'Multi-select or scan a folder. Assets stay in this browser and can be reused',
+  assetFolderHint: 'Pick a local image folder to batch import (re-select is needed after refresh)',
+  assetFolderScanDone: (n) => `Imported ${n} images from folder`,
+  assetFolderNoImages: 'No supported image formats found in the folder',
   assetLoading: 'Loading assets…',
   assetEmpty: 'Your asset library is empty',
   assetEditHint: 'Edit asset',

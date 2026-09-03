@@ -1162,6 +1162,15 @@ select {
   align-items: stretch;
 }
 
+.asset-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.asset-buttons .btn {
+  flex: 1;
+}
+
 .asset-error {
   display: flex;
   align-items: center;
