@@ -102,6 +102,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
   const [isDropping, setIsDropping] = useState(false)
   const [borderPopupIndex, setBorderPopupIndex] = useState<number | null>(null)
   const [selectedOverlayId, setSelectedOverlayId] = useState<string | null>(null)
+  const [overlayBorderOpen, setOverlayBorderOpen] = useState(false)
 
   /**
    * 悬浮菜单「延迟消失」机制：
@@ -371,6 +372,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       } else if (e.key === 'Escape') {
         setSelectedOverlayId(null)
         setSelectedIndex(null)
+        setOverlayBorderOpen(false)
         onSelectText(null)
       }
     }
@@ -465,6 +467,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       if (overlay) {
         setSelectedOverlayId(overlayId)
         setSelectedIndex(null)
+        setOverlayBorderOpen(false)
         if (selectedTextId) onSelectText(null)
         overlayDrag.current = {
           pointerId: e.pointerId,
@@ -690,6 +693,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
   // ---------- 选中浮层素材控制条 ----------
   const selectedOverlay = selectedOverlayId != null ? (overlays.find((o) => o.id === selectedOverlayId) ?? null) : null
   const selectedOverlayBox = selectedOverlay ? overlayBounds(selectedOverlay) : null
+  const checkedOverlayBorder = selectedOverlay != null && (selectedOverlay.borderWidth ?? 0) > 0
 
   return (
     <div
@@ -966,6 +970,32 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                     )
                   })}
                 </div>
+                <div className="field">
+                  <span className="field-label">{t('borderPattern')}</span>
+                  <div className="seg" style={{ marginTop: 4 }}>
+                    {(['solid', 'dashed', 'dotted', 'double'] as const).map((pattern) => {
+                      const patternLabel =
+                        pattern === 'solid'
+                          ? t('patternSolid')
+                          : pattern === 'dashed'
+                            ? t('patternDashed')
+                            : pattern === 'dotted'
+                              ? t('patternDotted')
+                              : t('patternDouble')
+                      return (
+                        <button
+                          key={pattern}
+                          type="button"
+                          className={`seg-item${(store.cellBorders[solved.names[toolbarIndex]]?.pattern ?? 'solid') === pattern ? ' is-active' : ''}`}
+                          onClick={() => store.updateCellBorder(solved.names[toolbarIndex], { pattern })}
+                          aria-label={patternLabel}
+                        >
+                          {patternLabel}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1018,16 +1048,90 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
             />
             <button
               type="button"
+              className={`adjustbar-btn${checkedOverlayBorder || overlayBorderOpen ? ' is-active' : ''}`}
+              title={t('overlayBorder')}
+              aria-label={t('overlayBorder')}
+              onClick={() => setOverlayBorderOpen((v) => !v)}
+            >
+              <Square size={13} />
+            </button>
+            <button
+              type="button"
               className="adjustbar-btn is-danger"
               title={t('overlayDelete')}
               aria-label={t('overlayDelete')}
               onClick={() => {
                 removeOverlay(selectedOverlay.id)
                 setSelectedOverlayId(null)
+                setOverlayBorderOpen(false)
               }}
             >
               <Trash2 size={13} />
             </button>
+          </div>
+        )}
+        {selectedOverlay && selectedOverlayBox && overlayBorderOpen && (
+          <div
+            className="overlay-border-group"
+            style={{
+              left: selectedOverlayBox.x + selectedOverlayBox.w / 2,
+              top: Math.min(selectedOverlayBox.y + selectedOverlayBox.h + 46, Math.max(8, preview.h - 190)),
+            }}
+          >
+            <div className="border-popup">
+              <div className="field">
+                <div className="field-head">
+                  <span className="field-label">{t('overlayBorder')}</span>
+                  <span className="field-value">{Math.round(selectedOverlay.borderWidth ?? 0)}px</span>
+                </div>
+                <input
+                  type="range"
+                  className="slider"
+                  min={0}
+                  max={40}
+                  step={1}
+                  value={selectedOverlay.borderWidth ?? 0}
+                  onChange={(e) => updateOverlay(selectedOverlay.id, { borderWidth: Number(e.target.value) })}
+                />
+              </div>
+              <div className="field">
+                <span className="field-label">{t('cellBorderColor')}</span>
+                <div className="color-row">
+                  <input
+                    type="color"
+                    className="swatch"
+                    value={selectedOverlay.borderColor ?? '#ffffff'}
+                    onChange={(e) => updateOverlay(selectedOverlay.id, { borderColor: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="field">
+                <span className="field-label">{t('borderPattern')}</span>
+                <div className="seg">
+                  {(['solid', 'dashed', 'dotted', 'double'] as const).map((pattern) => {
+                    const patternLabel =
+                      pattern === 'solid'
+                        ? t('patternSolid')
+                        : pattern === 'dashed'
+                          ? t('patternDashed')
+                          : pattern === 'dotted'
+                            ? t('patternDotted')
+                            : t('patternDouble')
+                    return (
+                      <button
+                        key={pattern}
+                        type="button"
+                        className={`seg-item${(selectedOverlay.borderPattern ?? 'solid') === pattern ? ' is-active' : ''}`}
+                        onClick={() => updateOverlay(selectedOverlay.id, { borderPattern: pattern })}
+                        aria-label={patternLabel}
+                      >
+                        {patternLabel}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

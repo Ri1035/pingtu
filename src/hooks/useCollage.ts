@@ -18,6 +18,8 @@ import { loadImageFiles, disposePhoto } from '../lib/image'
 
 export const DEFAULT_STYLE: CanvasStyle = {
   ratio: 'auto',
+  customWidth: 1600,
+  customHeight: 900,
   margin: 0,
   gap: 12,
   radius: 0,
@@ -276,7 +278,7 @@ export function useCollage() {
   const updateCellBorder = useCallback((cellName: string, patch: Partial<CellBorder>) => {
     setCellBorders((prev) => ({
       ...prev,
-      [cellName]: { ...(prev[cellName] ?? { width: 0, color: '#000000', direction: 'center' }), ...patch },
+      [cellName]: { ...(prev[cellName] ?? { width: 0, color: '#000000', direction: 'center', pattern: 'solid' }), ...patch },
     }))
   }, [])
 
