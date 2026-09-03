@@ -1,4 +1,4 @@
-import type { CanvasStyle, CellRect, GridLayout, PhotoItem, PhotoTransform, TextItem } from '../types'
+import type { AssetOverlay, CanvasStyle, CellBorder, CellRect, CellSizeScale, GridLayout, PhotoItem, PhotoTransform, TextItem } from '../types'
 import { canvasRatioFromContent, computeContentRatio, parseRatio, solveLayout } from './geometry'
 
 /**
@@ -34,6 +34,12 @@ export interface CollageScene {
   style: CanvasStyle
   /** 叠加在整张画布上的文字图层 */
   texts?: TextItem[]
+  /** 单个格子的边框设置 */
+  cellBorders?: Record<string, CellBorder>
+  /** 单个格子的大小缩放（默认 1,1） */
+  cellSizes?: Record<string, CellSizeScale>
+  /** 浮在画布上的素材图层 */
+  overlays?: AssetOverlay[]
 }
 
 export interface DrawOptions {
@@ -162,7 +168,66 @@ function drawPhoto(
   ctx.restore()
 }
 
-/** 空槽占位符：虚线框 + 加号 + 序号 */
+/** 绘制单个格子的边框 */
+function drawCellBorder(
+  ctx: CanvasRenderingContext2D,
+  cell: CellRect,
+  border: CellBorder,
+  radius: number,
+): void {
+  if (border.width <= 0) return
+  const bw = border.width
+  ctx.save()
+  if (border.direction === 'outward') {
+    // 向外：边框画在格子外部
+    const pad = bw / 2
+    ctx.strokeStyle = border.color
+    ctx.lineWidth = bw
+    roundRectPath(ctx, cell.x - pad, cell.y - pad, cell.w + bw, cell.h + bw, radius + pad)
+    ctx.stroke()
+  } else if (border.direction === 'inward') {
+    // 向内：边框画在格子内部，先 clip 后画线
+    ctx.save()
+    roundRectPath(ctx, cell.x, cell.y, cell.w, cell.h, radius)
+    ctx.clip()
+    ctx.strokeStyle = border.color
+    ctx.lineWidth = bw * 2
+    roundRectPath(ctx, cell.x, cell.y, cell.w, cell.h, radius)
+    ctx.stroke()
+    ctx.restore()
+  } else {
+    // 居中：边框沿格子边界
+    ctx.strokeStyle = border.color
+    ctx.lineWidth = bw
+    roundRectPath(ctx, cell.x, cell.y, cell.w, cell.h, radius)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
+/** 绘制浮层素材 */
+function drawAssetOverlay(
+  ctx: CanvasRenderingContext2D,
+  overlay: AssetOverlay,
+  width: number,
+  height: number,
+): void {
+  if (!overlay.source || overlay.opacity <= 0) return
+  const scale = width / 1600
+  const cx = overlay.x * width
+  const cy = overlay.y * height
+  const s = overlay.scale * scale
+  const dw = overlay.width * s
+  const dh = overlay.height * s
+  if (dw <= 0 || dh <= 0) return
+
+  ctx.save()
+  ctx.globalAlpha = overlay.opacity
+  ctx.translate(cx, cy)
+  if (overlay.rotation !== 0) ctx.rotate((overlay.rotation * Math.PI) / 180)
+  ctx.drawImage(overlay.source, -dw / 2, -dh / 2, dw, dh)
+  ctx.restore()
+}
 function drawPlaceholder(
   ctx: CanvasRenderingContext2D,
   cell: CellRect,
@@ -276,14 +341,31 @@ export function drawCollage(
   const solved = solveLayout(scene.layout, content, gap)
 
   solved.names.forEach((name, index) => {
-    const cell = solved.cells[name]
+    let cell = solved.cells[name]
     if (!cell || cell.w <= 0 || cell.h <= 0) return
+
+    // 应用单个格子大小缩放
+    const cellSizeScale = scene.cellSizes?.[name]
+    if (cellSizeScale) {
+      // 缩放后保持格子左上角不动，只改宽高
+      const w = cell.w * cellSizeScale.w
+      const h = cell.h * cellSizeScale.h
+      cell = { ...cell, w, h }
+    }
+
     const photo = scene.slots[index]
     if (photo) {
       const transform = scene.transforms[photo.id] ?? DEFAULT_TRANSFORM
       drawPhoto(ctx, photo, transform, cell, radius)
     } else if (options.showPlaceholders) {
       drawPlaceholder(ctx, cell, radius, index, '')
+    }
+
+    // 绘制单个格子边框
+    const border = scene.cellBorders?.[name]
+    if (border && border.width > 0) {
+      const scaledWidth = border.width * scale
+      drawCellBorder(ctx, cell, { ...border, width: scaledWidth }, radius)
     }
 
     if (options.highlight === name) {
@@ -300,6 +382,13 @@ export function drawCollage(
   if (scene.texts) {
     for (const text of scene.texts) {
       drawText(ctx, text, width, height)
+    }
+  }
+
+  // 浮层素材叠加在最上层（文字之上）
+  if (scene.overlays) {
+    for (const overlay of scene.overlays) {
+      drawAssetOverlay(ctx, overlay, width, height)
     }
   }
 

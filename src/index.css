@@ -784,6 +784,10 @@ select {
   background: rgba(220, 38, 38, 0.85);
 }
 
+.slot-toolbar button.is-active {
+  background: rgba(37, 99, 235, 0.7);
+}
+
 /* 缩放提示 */
 .zoom-badge {
   position: absolute;
@@ -1573,4 +1577,63 @@ select {
 .adjustbar-btn:hover {
   background: rgba(255, 255, 255, 0.18);
   color: #fff;
+}
+
+/* 边框设置弹出面板 */
+.border-popup {
+  position: absolute;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(20, 24, 31, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transform: translate(-50%, 0);
+  min-width: 200px;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.border-popup .field-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+}
+
+.border-popup .field-value {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+}
+
+.border-popup .swatch {
+  width: 30px;
+  height: 26px;
+}
+
+.border-popup .seg {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.border-popup .seg-item {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  height: 26px;
+}
+
+.border-popup .seg-item.is-active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.border-popup .slider::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.border-popup .slider::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-color: rgba(255, 255, 255, 0.8);
 }

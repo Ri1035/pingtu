@@ -163,6 +163,29 @@ function Editor() {
     [store],
   )
 
+  /** 素材库「添加为浮层」：创建浮层素材叠加在画布上 */
+  const handleAddAssetAsOverlay = useCallback(
+    (file: File, thumb: string, width: number, height: number) => {
+      const img = new Image()
+      img.src = thumb
+      const id = `o${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
+      store.addOverlay({
+        id,
+        thumb,
+        width,
+        height,
+        x: 0.5,
+        y: 0.5,
+        scale: 1,
+        rotation: 0,
+        opacity: 1,
+        source: img,
+        name: file.name,
+      })
+    },
+    [store],
+  )
+
   return (
     <div className="app">
       <TopBar onReset={handleReset} onToggleLang={() => setLang(lang === 'zh' ? 'en' : 'zh')} />
@@ -196,7 +219,7 @@ function Editor() {
             {tab === 'export' && (
               <ExportPanel store={store} busy={busy} lastResult={lastResult} onExport={handleExport} />
             )}
-            {tab === 'assets' && <AssetPanel assetStore={assetStore} onAddFileToCollage={handleAddAssetToCollage} />}
+            {tab === 'assets' && <AssetPanel assetStore={assetStore} onAddFileToCollage={handleAddAssetToCollage} onAddAsOverlay={handleAddAssetAsOverlay} />}
           </div>
         </aside>
 
