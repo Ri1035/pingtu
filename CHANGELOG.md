@@ -5,6 +5,16 @@
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本（Semantic Versioning）](https://semver.org/lang/zh-CN/)。
 
+## [1.6.1] - 2026-09-03
+
+### Changed
+- **导航合并**：「样式 / 导出」合并为一个页签（样式区在上、导出区在下），「文字 / 水印」合并为一个页签（文字区在上、水印区在下）；左侧页签由 6 个精简为 4 个（布局 / 样式 / 文字 / 素材库），用分区标题「导出」「水印」分隔两组内容。
+- **开发者信息页精简**：移除「技术栈」区块；开发者姓名改为 `KOKA`；头像由首字母占位改为本地图片 `public/avatar.png`（2048×2048 透明底徽章，圆形裁剪展示）。
+
+### Notes
+- 同步移除 `aboutTech` 中英文案及 `AboutModal` 中对应区块；头像改为 `<img>` 并对 `base: './'` 采用相对路径 `avatar.png`，兼容任意子目录部署。
+- npm run typecheck / build 通过。
+
 ## [1.6.0] - 2026-09-03
 
 ### Added
@@ -175,6 +185,7 @@
 ### Notes
 - 以 [esmcelroy/photo-grid-collage-maker](https://github.com/esmcelroy/photo-grid-collage-maker) 为主要架构参考，另调研并融合 3 个开源拼图项目的优点，详见 `README.md`。
 
+[1.6.1]: https://github.com/Ri1035/pingtu/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/Ri1035/pingtu/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/Ri1035/pingtu/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/Ri1035/pingtu/compare/v1.3.0...v1.4.0
