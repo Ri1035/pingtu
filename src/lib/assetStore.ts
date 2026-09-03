@@ -33,6 +33,8 @@ export interface AssetBackend {
   save(record: AssetRecord): Promise<AssetItem>
   /** 删除素材 */
   remove(id: string): Promise<void>
+  /** 清空所有素材 */
+  clear(): Promise<void>
   /** 后端能力描述（用于 UI 提示/调试） */
   readonly label: string
 }
@@ -116,6 +118,17 @@ class IndexedDBAssetBackend implements AssetBackend {
       store.delete(id)
       tx.oncomplete = () => resolve()
       tx.onerror = () => reject(tx.error ?? new Error('删除素材失败'))
+    })
+  }
+
+  async clear(): Promise<void> {
+    const db = await openDb()
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+      store.clear()
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error ?? new Error('清空素材库失败'))
     })
   }
 }

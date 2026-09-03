@@ -633,13 +633,12 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
 
         {toolbarCell && toolbarIndex != null && (
           <div
-            className="slot-toolbar"
+            className="toolbar-group"
             style={{
               left: toolbarCell.x + toolbarCell.w / 2,
               top: toolbarCell.y + 8,
             }}
             onPointerEnter={() => {
-              // 进入工具栏：取消延迟清除，保持显示
               cancelHoverTimer()
               setHoverIndex(toolbarIndex)
             }}
@@ -648,178 +647,166 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
               setBorderPopupIndex(null)
             }}
           >
-            {toolbarPhoto && toolbarTransform ? (
-              <>
-                <button type="button" title={t('replace')} aria-label={t('replace')} onClick={() => onPickFiles(toolbarIndex)}>
+            <div className="slot-toolbar">
+              {toolbarPhoto && toolbarTransform ? (
+                <>
+                  <button type="button" title={t('replace')} aria-label={t('replace')} onClick={() => onPickFiles(toolbarIndex)}>
+                    <ImagePlus size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    title={t('rotateRight')}
+                    aria-label={t('rotateRight')}
+                    onClick={() => updateTransform(toolbarPhoto.id, { rotation: (toolbarTransform.rotation + 90) % 360 })}
+                  >
+                    <RotateCw size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    title={t('flipH')}
+                    aria-label={t('flipH')}
+                    onClick={() => updateTransform(toolbarPhoto.id, { flipH: !toolbarTransform.flipH })}
+                  >
+                    <FlipHorizontal2 size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    title={t('flipV')}
+                    aria-label={t('flipV')}
+                    onClick={() => updateTransform(toolbarPhoto.id, { flipV: !toolbarTransform.flipV })}
+                  >
+                    <FlipVertical2 size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    title={toolbarTransform.fit === 'cover' ? t('fitContain') : t('fitCover')}
+                    aria-label={toolbarTransform.fit === 'cover' ? t('fitContain') : t('fitCover')}
+                    onClick={() =>
+                      updateTransform(toolbarPhoto.id, { fit: toolbarTransform.fit === 'cover' ? 'contain' : 'cover' })
+                    }
+                  >
+                    {toolbarTransform.fit === 'cover' ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                  </button>
+                  <button type="button" title={t('resetView')} aria-label={t('resetView')} onClick={() => resetTransform(toolbarPhoto.id)}>
+                    <RefreshCw size={14} />
+                  </button>
+                  {/* 单格放大 */}
+                  <button
+                    type="button"
+                    title={t('cellEnlarge')}
+                    aria-label={t('cellEnlarge')}
+                    onClick={() => {
+                      const cellName = solved?.names[toolbarIndex]
+                      if (!cellName) return
+                      const cur = store.cellSizes[cellName] ?? { w: 1, h: 1 }
+                      store.updateCellSize(cellName, { w: Math.min(3, cur.w * 1.15), h: Math.min(3, cur.h * 1.15) })
+                    }}
+                  >
+                    <Plus size={14} />
+                  </button>
+                  {/* 单格缩小 */}
+                  <button
+                    type="button"
+                    title={t('cellShrink')}
+                    aria-label={t('cellShrink')}
+                    onClick={() => {
+                      const cellName = solved?.names[toolbarIndex]
+                      if (!cellName) return
+                      const cur = store.cellSizes[cellName] ?? { w: 1, h: 1 }
+                      const nw = Math.max(0.3, cur.w / 1.15)
+                      const nh = Math.max(0.3, cur.h / 1.15)
+                      store.updateCellSize(cellName, { w: nw, h: nh })
+                    }}
+                  >
+                    <Minus size={14} />
+                  </button>
+                  {/* 边框 */}
+                  <button
+                    type="button"
+                    className={store.cellBorders[solved!.names[toolbarIndex]]?.width > 0 ? 'is-active' : ''}
+                    title={t('cellBorder')}
+                    aria-label={t('cellBorder')}
+                    onClick={() => {
+                      const idx = borderPopupIndex === toolbarIndex ? null : toolbarIndex
+                      setBorderPopupIndex(idx)
+                    }}
+                  >
+                    <Square size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className="is-danger"
+                    title={t('remove')}
+                    aria-label={t('remove')}
+                    onClick={() => {
+                      removePhoto(toolbarPhoto.id)
+                      setSelectedIndex(null)
+                      setHoverIndex(null)
+                      setBorderPopupIndex(null)
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </>
+              ) : (
+                <button type="button" title={t('clickToAdd')} aria-label={t('clickToAdd')} onClick={() => onPickFiles(toolbarIndex)}>
                   <ImagePlus size={14} />
                 </button>
-                <button
-                  type="button"
-                  title={t('rotateRight')}
-                  aria-label={t('rotateRight')}
-                  onClick={() => updateTransform(toolbarPhoto.id, { rotation: (toolbarTransform.rotation + 90) % 360 })}
-                >
-                  <RotateCw size={14} />
-                </button>
-                <button
-                  type="button"
-                  title={t('flipH')}
-                  aria-label={t('flipH')}
-                  onClick={() => updateTransform(toolbarPhoto.id, { flipH: !toolbarTransform.flipH })}
-                >
-                  <FlipHorizontal2 size={14} />
-                </button>
-                <button
-                  type="button"
-                  title={t('flipV')}
-                  aria-label={t('flipV')}
-                  onClick={() => updateTransform(toolbarPhoto.id, { flipV: !toolbarTransform.flipV })}
-                >
-                  <FlipVertical2 size={14} />
-                </button>
-                <button
-                  type="button"
-                  title={toolbarTransform.fit === 'cover' ? t('fitContain') : t('fitCover')}
-                  aria-label={toolbarTransform.fit === 'cover' ? t('fitContain') : t('fitCover')}
-                  onClick={() =>
-                    updateTransform(toolbarPhoto.id, { fit: toolbarTransform.fit === 'cover' ? 'contain' : 'cover' })
-                  }
-                >
-                  {toolbarTransform.fit === 'cover' ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-                </button>
-                <button type="button" title={t('resetView')} aria-label={t('resetView')} onClick={() => resetTransform(toolbarPhoto.id)}>
-                  <RefreshCw size={14} />
-                </button>
-                {/* 单格放大 */}
-                <button
-                  type="button"
-                  title={t('cellEnlarge')}
-                  aria-label={t('cellEnlarge')}
-                  onClick={() => {
-                    const cellName = solved?.names[toolbarIndex]
-                    if (!cellName) return
-                    const cur = store.cellSizes[cellName] ?? { w: 1, h: 1 }
-                    store.updateCellSize(cellName, { w: Math.min(3, cur.w * 1.15), h: Math.min(3, cur.h * 1.15) })
-                  }}
-                >
-                  <Plus size={14} />
-                </button>
-                {/* 单格缩小 */}
-                <button
-                  type="button"
-                  title={t('cellShrink')}
-                  aria-label={t('cellShrink')}
-                  onClick={() => {
-                    const cellName = solved?.names[toolbarIndex]
-                    if (!cellName) return
-                    const cur = store.cellSizes[cellName] ?? { w: 1, h: 1 }
-                    const nw = Math.max(0.3, cur.w / 1.15)
-                    const nh = Math.max(0.3, cur.h / 1.15)
-                    store.updateCellSize(cellName, { w: nw, h: nh })
-                  }}
-                >
-                  <Minus size={14} />
-                </button>
-                {/* 边框 */}
-                <button
-                  type="button"
-                  className={store.cellBorders[solved!.names[toolbarIndex]]?.width > 0 ? 'is-active' : ''}
-                  title={t('cellBorder')}
-                  aria-label={t('cellBorder')}
-                  onClick={() => {
-                    const idx = borderPopupIndex === toolbarIndex ? null : toolbarIndex
-                    setBorderPopupIndex(idx)
-                  }}
-                >
-                  <Square size={14} />
-                </button>
-                <button
-                  type="button"
-                  className="is-danger"
-                  title={t('remove')}
-                  aria-label={t('remove')}
-                  onClick={() => {
-                    removePhoto(toolbarPhoto.id)
-                    setSelectedIndex(null)
-                    setHoverIndex(null)
-                    setBorderPopupIndex(null)
-                  }}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </>
-            ) : (
-              <button type="button" title={t('clickToAdd')} aria-label={t('clickToAdd')} onClick={() => onPickFiles(toolbarIndex)}>
-                <ImagePlus size={14} />
-              </button>
-            )}
-          </div>
-        )}
+              )}
+            </div>
 
-        {/* 边框设置弹出面板 */}
-        {borderPopupIndex != null && solved && toolbarIndex != null && borderPopupIndex === toolbarIndex && (
-          <div
-            className="border-popup"
-            style={{
-              left: toolbarCell!.x + toolbarCell!.w / 2,
-              top: toolbarCell!.y + 50,
-            }}
-            onPointerEnter={() => {
-              cancelHoverTimer()
-              setHoverIndex(toolbarIndex)
-            }}
-            onPointerLeave={() => {
-              scheduleClearHover()
-              setBorderPopupIndex(null)
-            }}
-          >
-            <div className="field">
-              <div className="field-head">
-                <span className="field-label">{t('cellBorderWidth')}</span>
-                <span className="field-value">{store.cellBorders[solved.names[toolbarIndex]]?.width ?? 0}px</span>
+            {/* 边框设置弹出面板 */}
+            {borderPopupIndex != null && solved && toolbarIndex != null && borderPopupIndex === toolbarIndex && (
+              <div className="border-popup" style={{ marginTop: 4 }}>
+                <div className="field">
+                  <div className="field-head">
+                    <span className="field-label">{t('cellBorderWidth')}</span>
+                    <span className="field-value">{store.cellBorders[solved.names[toolbarIndex]]?.width ?? 0}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    className="slider"
+                    min={0}
+                    max={20}
+                    step={1}
+                    value={store.cellBorders[solved.names[toolbarIndex]]?.width ?? 0}
+                    onChange={(e) => {
+                      const v = Number(e.target.value)
+                      store.updateCellBorder(solved.names[toolbarIndex], { width: v })
+                    }}
+                  />
+                </div>
+                <div className="field">
+                  <span className="field-label">{t('cellBorderColor')}</span>
+                  <div className="color-row">
+                    <input
+                      type="color"
+                      className="swatch"
+                      value={store.cellBorders[solved.names[toolbarIndex]]?.color ?? '#000000'}
+                      onChange={(e) => {
+                        store.updateCellBorder(solved.names[toolbarIndex], { color: e.target.value })
+                      }}
+                    />
+                  </div>
+                </div>
+                <div className="seg" style={{ marginTop: 4 }}>
+                  {(['inward', 'center', 'outward'] as const).map((dir) => {
+                    const dirLabel = dir === 'inward' ? t('cellBorderInward') : dir === 'outward' ? t('cellBorderOutward') : t('cellBorderCenter')
+                    return (
+                      <button
+                        key={dir}
+                        type="button"
+                        className={`seg-item${(store.cellBorders[solved.names[toolbarIndex]]?.direction ?? 'center') === dir ? ' is-active' : ''}`}
+                        onClick={() => store.updateCellBorder(solved.names[toolbarIndex], { direction: dir })}
+                        aria-label={dirLabel}
+                      >
+                        {dirLabel}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-              <input
-                type="range"
-                className="slider"
-                min={0}
-                max={20}
-                step={1}
-                value={store.cellBorders[solved.names[toolbarIndex]]?.width ?? 0}
-                onChange={(e) => {
-                  const v = Number(e.target.value)
-                  store.updateCellBorder(solved.names[toolbarIndex], { width: v })
-                }}
-              />
-            </div>
-            <div className="field">
-              <span className="field-label">{t('cellBorderColor')}</span>
-              <div className="color-row">
-                <input
-                  type="color"
-                  className="swatch"
-                  value={store.cellBorders[solved.names[toolbarIndex]]?.color ?? '#000000'}
-                  onChange={(e) => {
-                    store.updateCellBorder(solved.names[toolbarIndex], { color: e.target.value })
-                  }}
-                />
-              </div>
-            </div>
-            <div className="seg" style={{ marginTop: 4 }}>
-              {(['inward', 'center', 'outward'] as const).map((dir) => {
-                const dirLabel = dir === 'inward' ? t('cellBorderInward') : dir === 'outward' ? t('cellBorderOutward') : t('cellBorderCenter')
-                return (
-                  <button
-                    key={dir}
-                    type="button"
-                    className={`seg-item${(store.cellBorders[solved.names[toolbarIndex]]?.direction ?? 'center') === dir ? ' is-active' : ''}`}
-                    onClick={() => store.updateCellBorder(solved.names[toolbarIndex], { direction: dir })}
-                    aria-label={dirLabel}
-                  >
-                    {dirLabel}
-                  </button>
-                )
-              })}
-            </div>
+            )}
           </div>
         )}
       </div>
