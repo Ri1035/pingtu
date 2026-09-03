@@ -7,6 +7,12 @@
 
 ## [Unreleased]
 
+### Fixed
+- **i18n 全覆盖**：修复 `StylePanel` 画布比例按钮硬编码中文标签、底部样式提示中文；`ExportPanel` 中"无损"、"PNG 为无损格式"、"导出后会显示实际文件大小" 3 处硬编码文本；`TextPanel` 中错误引用 `t('ratioAuto')` 作为字体通用标签（改为 `t('fontGeneric')`）。
+- **无障碍补全**：为 `CollageStage` 悬浮工具条 12 个图标按钮、调整条 3 个按钮、空态大按钮添加 `aria-label`；为 `AssetEditor` 工具栏 5 个图标按钮、裁剪比例 5 个按钮、颜色预设 8 个按钮、删除图层按钮、贴纸单元格 40 个添加 `aria-label`；为边框方向 3 个按钮添加 `aria-label`。
+- **React StrictMode 兼容**：`useCollage.ts` 中 `textSeed` 从模块级变量改为 `useRef`，避免严格模式下 `addText` 计数翻倍。
+- **死代码清理**：移除 `geometry.ts` 中未使用的 `hitTest` 导出；移除 `layouts.ts` 中未使用的 `toGridTemplate` 导出、未使用的 `AREA_LETTERS` 常量；移除 `fonts.ts` 中未使用的 `isFontCacheReady` 导出；移除 `stickers.ts` 中未使用的 `stickerAt` 导出及未使用的 `StickerItem` 类型导入。
+
 ### Added
 - **UI 设计系统 v2**：重构 `index.css`，建立完整的 Design Tokens 体系（色彩/圆角/阴影/动效变量），新增 `--ease-out`、`--radius-pill`、`--danger-soft`、`--warn`、`--warn-soft` 等 token，统一全组件样式基调。
 - **四端响应式布局**：新增 4 个断点覆盖全设备：

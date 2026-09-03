@@ -290,23 +290,24 @@ export function AssetEditor({ asset, sourceImage, onSave, onClose }: Props) {
           <span className="pill">{`${outSize.w} × ${outSize.h}`}</span>
         </div>
         <div className="asset-editor-tools">
-          <button type="button" className="btn btn-icon" title={t('rotateRight')} onClick={() => setRotation((r) => (r + 90) % 360)}>
+          <button type="button" className="btn btn-icon" title={t('rotateRight')} aria-label={t('rotateRight')} onClick={() => setRotation((r) => (r + 90) % 360)}>
             <RotateCw size={16} />
           </button>
-          <button type="button" className={`btn btn-icon${flipH ? ' is-active' : ''}`} title={t('flipH')} onClick={() => setFlipH((v) => !v)}>
+          <button type="button" className={`btn btn-icon${flipH ? ' is-active' : ''}`} title={t('flipH')} aria-label={t('flipH')} onClick={() => setFlipH((v) => !v)}>
             <FlipHorizontal2 size={16} />
           </button>
-          <button type="button" className={`btn btn-icon${flipV ? ' is-active' : ''}`} title={t('flipV')} onClick={() => setFlipV((v) => !v)}>
+          <button type="button" className={`btn btn-icon${flipV ? ' is-active' : ''}`} title={t('flipV')} aria-label={t('flipV')} onClick={() => setFlipV((v) => !v)}>
             <FlipVertical2 size={16} />
           </button>
           <span className="divider-v" />
-          <button type="button" className="btn btn-icon" title={t('assetEditAddText')} onClick={addTextLayer}>
+          <button type="button" className="btn btn-icon" title={t('assetEditAddText')} aria-label={t('assetEditAddText')} onClick={addTextLayer}>
             <Type size={16} />
           </button>
           <button
             type="button"
             className={`btn btn-icon${showStickerPanel ? ' is-active' : ''}`}
             title={t('assetEditAddSticker')}
+            aria-label={t('assetEditAddSticker')}
             onClick={() => {
               setShowStickerPanel((v) => !v)
               setActiveId(null)
@@ -346,6 +347,7 @@ export function AssetEditor({ asset, sourceImage, onSave, onClose }: Props) {
               type="button"
               className={`chip${cropRatio === c.value ? ' is-active' : ''}`}
               onClick={() => setCropRatio(c.value)}
+              aria-label={t(c.key)}
             >
               {t(c.key)}
             </button>
@@ -385,6 +387,7 @@ export function AssetEditor({ asset, sourceImage, onSave, onClose }: Props) {
                     className={`preset-color${activeLayer.color === c ? ' is-active' : ''}`}
                     style={{ background: c, border: c === '#ffffff' ? '1px solid #d5dce6' : undefined }}
                     onClick={() => updateActive({ color: c })}
+                    aria-label={c}
                   />
                 ))}
               </div>
@@ -396,6 +399,7 @@ export function AssetEditor({ asset, sourceImage, onSave, onClose }: Props) {
                 setLayers((prev) => prev.filter((l) => l.id !== activeId))
                 setActiveId(null)
               }}
+              aria-label={t('textDelete')}
             >
               <Trash2 size={14} />
               {t('textDelete')}
@@ -406,7 +410,7 @@ export function AssetEditor({ asset, sourceImage, onSave, onClose }: Props) {
         {showStickerPanel && (
           <div className="sticker-panel">
             {STICKER_GLYPHS.map((g) => (
-              <button key={g} type="button" className="sticker-cell" onClick={() => addStickerLayer(g)}>
+              <button key={g} type="button" className="sticker-cell" onClick={() => addStickerLayer(g)} aria-label={g}>
                 {g}
               </button>
             ))}

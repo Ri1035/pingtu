@@ -4,13 +4,13 @@ import type { CollageStore } from '../hooks/useCollage'
 import { DEFAULT_STYLE } from '../hooks/useCollage'
 import { BASE_WIDTH } from '../lib/render'
 
-const RATIOS = [
-  { value: 'auto', label: '自动' },
-  { value: '1/1', label: '1:1' },
-  { value: '3/4', label: '3:4' },
-  { value: '9/16', label: '9:16' },
-  { value: '4/3', label: '4:3' },
-  { value: '16/9', label: '16:9' },
+const RATIOS: { value: string; label: string; i18nKey?: string }[] = [
+  { value: 'auto', label: '自动', i18nKey: 'ratioAuto' },
+  { value: '1/1', label: '1:1', i18nKey: 'ratio11' },
+  { value: '3/4', label: '3:4', i18nKey: 'ratio34' },
+  { value: '9/16', label: '9:16', i18nKey: 'ratio916' },
+  { value: '4/3', label: '4:3', i18nKey: 'ratio43' },
+  { value: '16/9', label: '16:9', i18nKey: 'ratio169' },
 ]
 
 const PRESET_COLORS = ['#ffffff', '#f5f5f4', '#111827', '#0f172a', '#2563eb', '#fecdd3', '#d9f99d', 'transparent']
@@ -32,7 +32,7 @@ export function StylePanel({ store }: { store: CollageStore }) {
               onClick={() => setStyle({ ratio: r.value })}
               aria-pressed={style.ratio === r.value}
             >
-              {r.value === 'auto' ? t('ratioAuto') : r.label}
+              {r.i18nKey ? t(r.i18nKey) : r.label}
             </button>
           ))}
         </div>
@@ -139,7 +139,7 @@ export function StylePanel({ store }: { store: CollageStore }) {
       </button>
 
       <div className="field-hint">
-        边距 / 间距 / 圆角以 {BASE_WIDTH}px 宽为基准等比缩放，改变导出尺寸不会影响观感。
+        {t('styleHint').replace('{base}', String(BASE_WIDTH))}
       </div>
     </>
   )

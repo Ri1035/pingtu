@@ -61,9 +61,6 @@ function buildOfficialLayouts(): GridLayout[] {
   return result
 }
 
-/** 字母表，用于按顺序取格子名 */
-const AREA_LETTERS = 'abcdefghijklmnopqrstuvwxyz'
-
 export const GRID_LAYOUTS: GridLayout[] = buildOfficialLayouts()
 
 /** 支持的图片数量范围（与原站一致：1 ~ 16） */
@@ -146,9 +143,4 @@ export function toGridTemplateAreas(layout: GridLayout): string {
   return layout.areas.map((row) => `"${row.trim()}"`).join(' ')
 }
 
-/** 生成 CSS grid-template 字符串（列 / 行） */
-export function toGridTemplate(layout: GridLayout): string {
-  return layout.gridTemplate
-}
 
-export { AREA_LETTERS }

@@ -1,5 +1,3 @@
-import type { StickerItem } from '../types'
-
 /**
  * 内置贴纸库
  * 首版使用 emoji 作为贴纸（跨平台字体渲染，无需图片资源）。
@@ -14,14 +12,4 @@ export const STICKER_GLYPHS: string[] = [
   '🏆', '🥇', '📷', '💡', '🎵', '🎧', '⚡', '💫',
 ]
 
-let seed = 0
 
-/** 按索引取一枚贴纸（带稳定 id） */
-export function stickerAt(index: number): StickerItem {
-  seed += 1
-  return {
-    id: `s${Date.now().toString(36)}${seed.toString(36)}`,
-    glyph: STICKER_GLYPHS[((index % STICKER_GLYPHS.length) + STICKER_GLYPHS.length) % STICKER_GLYPHS.length],
-    isEmoji: true,
-  }
-}
