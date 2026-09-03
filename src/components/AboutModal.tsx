@@ -10,11 +10,10 @@ interface Props {
  * 开发者信息（分享前请按需修改下面的 DEVELOPER_INFO）。
  */
 const DEVELOPER_INFO = {
-  name: '开发者',
+  name: 'KOKA',
   role: '独立开发者',
   github: 'https://github.com/Ri1035',
   email: 'your-email@example.com',
-  tech: ['React 18', 'TypeScript', 'Vite', 'Canvas 2D', 'IndexedDB', 'Cloudflare Pages'],
 }
 
 export function AboutModal({ onClose }: Props) {
@@ -59,7 +58,7 @@ export function AboutModal({ onClose }: Props) {
         <div className="about-section">
           <h3 className="about-section-title">{t('aboutDeveloper')}</h3>
           <div className="about-developer">
-            <span className="about-avatar">{DEVELOPER_INFO.name.slice(0, 1)}</span>
+            <img className="about-avatar" src="avatar.png" alt={DEVELOPER_INFO.name} />
             <div className="about-developer-meta">
               <strong>{DEVELOPER_INFO.name}</strong>
               <span>{DEVELOPER_INFO.role}</span>
@@ -78,15 +77,6 @@ export function AboutModal({ onClose }: Props) {
               <Mail size={16} />
               {DEVELOPER_INFO.email}
             </a>
-          </div>
-        </div>
-
-        <div className="about-section">
-          <h3 className="about-section-title">{t('aboutTech')}</h3>
-          <div className="about-tech">
-            {DEVELOPER_INFO.tech.map((item) => (
-              <span key={item} className="about-chip">{item}</span>
-            ))}
           </div>
         </div>
 

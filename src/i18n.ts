@@ -9,7 +9,7 @@ type Value = string | ((n: number) => string)
 const zh: Record<string, Value> = {
   appTitle: '拼图编辑器',
   appTagline: '本地处理 · 图片不上传',
-  appVersion: 'v1.6.0',
+  appVersion: 'v1.6.1',
 
   tabLayout: '布局',
   tabStyle: '样式',
@@ -227,7 +227,6 @@ const zh: Record<string, Value> = {
   about: '关于',
   aboutDeveloper: '开发者',
   aboutContact: '联系方式',
-  aboutTech: '技术栈',
   aboutLicense: '开源协议',
   aboutIntro: '一款纯本地、无后端的在线拼图编辑器，图片全程在浏览器内处理，不会上传到任何服务器。',
   aboutCopyLink: '复制分享链接',
@@ -238,7 +237,7 @@ const zh: Record<string, Value> = {
 const en: Record<string, Value> = {
   appTitle: 'Collage Editor',
   appTagline: 'Runs locally · never uploaded',
-  appVersion: 'v1.6.0',
+  appVersion: 'v1.6.1',
 
   tabLayout: 'Layout',
   tabStyle: 'Style',
@@ -456,7 +455,6 @@ const en: Record<string, Value> = {
   about: 'About',
   aboutDeveloper: 'Developer',
   aboutContact: 'Contact',
-  aboutTech: 'Tech stack',
   aboutLicense: 'License',
   aboutIntro: 'A privacy-first, offline collage editor that runs entirely in your browser — images are never uploaded.',
   aboutCopyLink: 'Copy share link',

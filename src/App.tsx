@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { LayoutGrid, SlidersHorizontal, Download, Type, Library, Stamp } from 'lucide-react'
+import { LayoutGrid, SlidersHorizontal, Type, Library } from 'lucide-react'
 import { I18nContext, LANG_STORAGE_KEY, makeI18n, useI18n, type Lang } from './i18n'
 import { useCollage } from './hooks/useCollage'
 import { useAssets } from './hooks/useAssets'
@@ -16,7 +16,7 @@ import { AboutModal } from './components/AboutModal'
 import { buildFilename, downloadBlob, renderToBlob, supportsWebp } from './lib/export'
 import { ACCEPT_ATTR } from './lib/image'
 
-type Tab = 'layout' | 'style' | 'text' | 'export' | 'assets' | 'watermark'
+type Tab = 'layout' | 'style' | 'text' | 'assets'
 
 export function App() {
   const [lang, setLangState] = useState<Lang>(() => {
@@ -164,8 +164,6 @@ function Editor() {
     { key: 'layout', label: t('tabLayout'), icon: LayoutGrid },
     { key: 'style', label: t('tabStyle'), icon: SlidersHorizontal },
     { key: 'text', label: t('tabText'), icon: Type },
-    { key: 'watermark', label: t('tabWatermark'), icon: Stamp },
-    { key: 'export', label: t('tabExport'), icon: Download },
     { key: 'assets', label: t('tabAssets'), icon: Library },
   ]
 
@@ -233,13 +231,21 @@ function Editor() {
 
           <div className="sidebar-body">
             {tab === 'layout' && <LayoutPanel store={store} />}
-            {tab === 'style' && <StylePanel store={store} />}
-            {tab === 'text' && (
-              <TextPanel store={store} selectedTextId={selectedTextId} onSelectText={setSelectedTextId} />
+            {tab === 'style' && (
+              <>
+                <StylePanel store={store} />
+                <div className="divider" />
+                <div className="section-title">{t('tabExport')}</div>
+                <ExportPanel store={store} busy={busy} lastResult={lastResult} onExport={handleExport} />
+              </>
             )}
-            {tab === 'watermark' && <WatermarkPanel store={store} />}
-            {tab === 'export' && (
-              <ExportPanel store={store} busy={busy} lastResult={lastResult} onExport={handleExport} />
+            {tab === 'text' && (
+              <>
+                <TextPanel store={store} selectedTextId={selectedTextId} onSelectText={setSelectedTextId} />
+                <div className="divider" />
+                <div className="section-title">{t('tabWatermark')}</div>
+                <WatermarkPanel store={store} />
+              </>
             )}
             {tab === 'assets' && <AssetPanel assetStore={assetStore} onAddFileToCollage={handleAddAssetToCollage} onAddAsOverlay={handleAddAssetAsOverlay} />}
           </div>
