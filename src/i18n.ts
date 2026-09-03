@@ -9,7 +9,7 @@ type Value = string | ((n: number) => string)
 const zh: Record<string, Value> = {
   appTitle: '拼图编辑器',
   appTagline: '本地处理 · 图片不上传',
-  appVersion: 'v1.4.0',
+  appVersion: 'v1.5.0',
 
   tabLayout: '布局',
   tabStyle: '样式',
@@ -81,10 +81,16 @@ const zh: Record<string, Value> = {
   cellBorderInward: '向内',
   cellBorderOutward: '向外',
   cellBorderCenter: '居中',
+  borderPattern: '边框样式',
+  patternSolid: '实线',
+  patternDashed: '虚线',
+  patternDotted: '点线',
+  patternDouble: '双线',
   // 浮层素材
   addAsOverlay: '添加为浮层',
   overlayScale: '大小',
   overlayRotate: '旋转',
+  overlayBorder: '边框',
   overlayDelete: '删除浮层',
   overlayHint: '拖拽浮层移动位置，选中后可用滑条或滚轮调整大小',
 
@@ -173,6 +179,9 @@ const zh: Record<string, Value> = {
   ratio916: '9:16',
   ratio43: '4:3',
   ratio169: '16:9',
+  ratioCustom: '自定义',
+  customSize: '画布尺寸',
+  customSizeHint: '直接指定画布像素宽高，替代上方比例选项',
 
   // —— 导出面板中文化 ——
   lossless: '无损',
@@ -189,7 +198,7 @@ const zh: Record<string, Value> = {
 const en: Record<string, Value> = {
   appTitle: 'Collage Editor',
   appTagline: 'Runs locally · never uploaded',
-  appVersion: 'v1.4.0',
+  appVersion: 'v1.5.0',
 
   tabLayout: 'Layout',
   tabStyle: 'Style',
@@ -261,10 +270,16 @@ const en: Record<string, Value> = {
   cellBorderInward: 'Inward',
   cellBorderOutward: 'Outward',
   cellBorderCenter: 'Center',
+  borderPattern: 'Border style',
+  patternSolid: 'Solid',
+  patternDashed: 'Dashed',
+  patternDotted: 'Dotted',
+  patternDouble: 'Double',
   // Overlay asset
   addAsOverlay: 'Add as overlay',
   overlayScale: 'Size',
   overlayRotate: 'Rotate',
+  overlayBorder: 'Border',
   overlayDelete: 'Delete overlay',
   overlayHint: 'Drag the overlay to move it; use the slider or scroll wheel to resize',
 
@@ -353,6 +368,9 @@ const en: Record<string, Value> = {
   ratio916: '9:16',
   ratio43: '4:3',
   ratio169: '16:9',
+  ratioCustom: 'Custom',
+  customSize: 'Canvas size',
+  customSizeHint: 'Set exact canvas width & height in pixels (overrides the ratio)',
 
   // —— Export panel ——
   lossless: 'Lossless',

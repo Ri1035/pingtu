@@ -179,6 +179,9 @@ function Editor() {
         scale: 1,
         rotation: 0,
         opacity: 1,
+        borderWidth: 0,
+        borderColor: '#ffffff',
+        borderPattern: 'solid',
         source: img,
         name: file.name,
       })

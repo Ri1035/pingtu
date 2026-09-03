@@ -1,4 +1,4 @@
-import type { CellRect, GridLayout, PhotoItem } from '../types'
+import type { CellRect, CellSizeScale, GridLayout, PhotoItem } from '../types'
 
 /**
  * 网格几何求解
@@ -124,6 +124,28 @@ export function solveLayout(layout: GridLayout, content: CellRect, gap: number):
   })
 
   return { cells, names }
+}
+
+/** 应用单个格子的缩放（左上角不动，只改宽高） */
+export function scaleCellRect(cell: CellRect, scale?: CellSizeScale): CellRect {
+  if (!scale) return cell
+  return { ...cell, w: cell.w * scale.w, h: cell.h * scale.h }
+}
+
+/** 返回应用了单格缩放后的全部格子矩形 */
+export function resolveCells(
+  cells: Record<string, CellRect>,
+  sizes?: Record<string, CellSizeScale>,
+): Record<string, CellRect> {
+  if (!sizes) return cells
+  const out: Record<string, CellRect> = {}
+  for (const [name, cell] of Object.entries(cells)) out[name] = scaleCellRect(cell, sizes[name])
+  return out
+}
+
+/** 判断某个格子是否被调整过大小（缩放 ≠ 1） */
+export function isCellResized(scale?: CellSizeScale): boolean {
+  return !!scale && (Math.abs(scale.w - 1) > 1e-6 || Math.abs(scale.h - 1) > 1e-6)
 }
 
 /**

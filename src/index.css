@@ -687,6 +687,24 @@ input, select, textarea {
   font-weight: 600;
 }
 
+/* 自定义画布尺寸 */
+.custom-size-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.custom-size-row .text-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.custom-size-x {
+  color: var(--muted);
+  font-size: 13px;
+  flex: 0 0 auto;
+}
+
 /* ===== 7. 画布区 ===== */
 .stage {
   flex: 1;
@@ -925,6 +943,22 @@ input, select, textarea {
 }
 
 .overlay-adjustbar .adjustbar-btn.is-danger:hover { background: rgba(220, 38, 38, 0.85); }
+
+.overlay-adjustbar .adjustbar-btn.is-active {
+  background: rgba(37, 99, 235, 0.7);
+  color: #fff;
+}
+
+/* 浮层素材边框设置弹出面板 */
+.overlay-border-group {
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 7;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
 /* 边框设置弹出面板 */
 .border-popup {

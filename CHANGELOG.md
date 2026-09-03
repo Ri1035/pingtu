@@ -13,6 +13,26 @@
 ### Fixed
 - （修复在此记录）
 
+## [1.5.0] - 2026-09-03
+
+### Added
+- **素材（浮层）可加边框 + 更多边框样式**：此前浮层素材无法加边框，单格边框也只有实线一种样式。本次新增：
+  - 浮层素材选中后，控制条出现「边框」按钮，弹出面板可调边框宽度（0~40px 设计像素）、颜色与样式，边框随浮层一起缩放 / 旋转。
+  - 边框样式从「实线」扩充为 **实线 / 虚线 / 点线 / 双线** 四种，单格边框与浮层边框共用同一套渲染，方向（向内 / 居中 / 向外）对四种样式均生效。
+- **自定义画布大小**：画布比例底部新增「自定义」选项，可直接输入像素宽 × 高（100~8000px），精确控制画布尺寸，替代上方的固定比例（预览与导出一致）。
+- **单格框体大小调整 + 层级浮起**：悬停工具栏的放大（+）/ 缩小（−）按钮可独立调整单个格子的框体尺寸（0.3×~3×），**其他格子的位置与大小不受影响**；调整过大小的框体在渲染时**后绘制、浮于所有未调整的框体之上**（z-order 排序）。
+
+### Changed
+- `CanvasStyle` 新增 `customWidth` / `customHeight`；`CellBorder` 新增 `pattern` 字段；`AssetOverlay` 新增 `borderWidth` / `borderColor` / `borderPattern`；新增 `CellSizeScale` 类型与 `resolveCells` / `isCellResized` 几何工具。
+- `render.ts` 重构边框绘制为 `strokeBorder`（原生 `setLineDash` 实现虚线 / 点线，双线用双描边），`computeRatio` 支持 `custom`，绘制顺序按「是否调整过大小」排序。
+- 新增 i18n 文案（边框样式 / 自定义尺寸等）中英双语。
+- 版本号从 `v1.4.0` 升级到 `v1.5.0`。
+
+### Notes
+- 边框样式优先调研了开源方案（Fabric.js `borderDashArray` 等均为重依赖），结论同前：完全复用原生 Canvas 2D 的 `setLineDash`（MDN 标准 API）即可实现虚线 / 点线，双线用两次描边实现，无需引入第三方库。
+- npm run typecheck / build 通过（gzip ~82 KB）
+- 现有拼图 / 文字 / 素材库 / 修图编辑器 / 导出功能无回归
+
 ## [1.4.0] - 2026-09-03
 
 ### Added
@@ -142,7 +162,8 @@
 ### Notes
 - 以 [esmcelroy/photo-grid-collage-maker](https://github.com/esmcelroy/photo-grid-collage-maker) 为主要架构参考，另调研并融合 3 个开源拼图项目的优点，详见 `README.md`。
 
-[Unreleased]: https://github.com/Ri1035/pingtu/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/Ri1035/pingtu/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/Ri1035/pingtu/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/Ri1035/pingtu/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Ri1035/pingtu/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/Ri1035/pingtu/compare/v1.1.0...v1.2.0

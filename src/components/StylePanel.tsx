@@ -1,4 +1,4 @@
-import { Field, Slider, Switch } from './ui/Controls'
+import { Field, NumberInput, Slider, Switch } from './ui/Controls'
 import { useI18n } from '../i18n'
 import type { CollageStore } from '../hooks/useCollage'
 import { DEFAULT_STYLE } from '../hooks/useCollage'
@@ -11,6 +11,7 @@ const RATIOS: { value: string; label: string; i18nKey?: string }[] = [
   { value: '9/16', label: '9:16', i18nKey: 'ratio916' },
   { value: '4/3', label: '4:3', i18nKey: 'ratio43' },
   { value: '16/9', label: '16:9', i18nKey: 'ratio169' },
+  { value: 'custom', label: '自定义', i18nKey: 'ratioCustom' },
 ]
 
 const PRESET_COLORS = ['#ffffff', '#f5f5f4', '#111827', '#0f172a', '#2563eb', '#fecdd3', '#d9f99d', 'transparent']
@@ -36,6 +37,30 @@ export function StylePanel({ store }: { store: CollageStore }) {
             </button>
           ))}
         </div>
+        {style.ratio === 'custom' && (
+          <div className="field" style={{ marginTop: 12 }}>
+            <div className="field-head">
+              <span className="field-label">{t('customSize')}</span>
+              <span className="field-value">{style.customWidth || 1600} × {style.customHeight || 900}px</span>
+            </div>
+            <div className="custom-size-row">
+              <NumberInput
+                value={style.customWidth || 1600}
+                min={100}
+                max={8000}
+                onChange={(v) => setStyle({ customWidth: v })}
+              />
+              <span className="custom-size-x">×</span>
+              <NumberInput
+                value={style.customHeight || 900}
+                min={100}
+                max={8000}
+                onChange={(v) => setStyle({ customHeight: v })}
+              />
+            </div>
+            <div className="field-hint" style={{ marginTop: 6 }}>{t('customSizeHint')}</div>
+          </div>
+        )}
       </section>
 
       <div className="divider" />

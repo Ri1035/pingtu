@@ -1,5 +1,5 @@
-import type { AssetOverlay, CanvasStyle, CellBorder, CellRect, CellSizeScale, GridLayout, PhotoItem, PhotoTransform, TextItem } from '../types'
-import { canvasRatioFromContent, computeContentRatio, parseRatio, solveLayout } from './geometry'
+import type { AssetOverlay, BorderPattern, CanvasStyle, CellBorder, CellRect, CellSizeScale, GridLayout, PhotoItem, PhotoTransform, TextItem } from '../types'
+import { canvasRatioFromContent, computeContentRatio, isCellResized, parseRatio, resolveCells, solveLayout } from './geometry'
 
 /**
  * Canvas 2D 渲染引擎
@@ -54,6 +54,11 @@ export interface DrawOptions {
 /** 计算画布比例：'auto' 时根据照片原始比例推算 */
 export function computeRatio(scene: CollageScene): number {
   const { style, layout, slots } = scene
+  if (style.ratio === 'custom') {
+    const w = Math.max(1, style.customWidth || 1600)
+    const h = Math.max(1, style.customHeight || 900)
+    return w / h
+  }
   if (style.ratio === 'auto') {
     const contentRatio = computeContentRatio(layout, slots)
     // 无缝模式外边距归零，画布比例等于内容比例
@@ -168,6 +173,83 @@ function drawPhoto(
   ctx.restore()
 }
 
+/**
+ * 描一个圆角矩形边框，支持实线 / 虚线 / 点线 / 双线，以及向内 / 向外 / 居中三种方向。
+ */
+function strokeBorder(
+  ctx: CanvasRenderingContext2D,
+  rect: CellRect,
+  radius: number,
+  border: { width: number; color: string; pattern: BorderPattern },
+  direction: 'inward' | 'outward' | 'center' = 'center',
+): void {
+  const bw = border.width
+  if (bw <= 0) return
+  const pattern = border.pattern ?? 'solid'
+  ctx.save()
+  ctx.strokeStyle = border.color
+  ctx.lineJoin = 'round'
+
+  const applyDash = () => {
+    if (pattern === 'dashed') {
+      ctx.setLineDash([Math.max(3, bw * 3), Math.max(2, bw * 2)])
+    } else if (pattern === 'dotted') {
+      ctx.setLineDash([Math.max(0.5, bw), Math.max(1, bw * 1.6)])
+      ctx.lineCap = 'round'
+    }
+  }
+
+  if (pattern === 'double') {
+    // 双线：两条实线，间距约一个线宽，视觉上仍占 bw 宽度
+    ctx.lineWidth = Math.max(1, bw / 2.4)
+    if (direction === 'outward') {
+      roundRectPath(ctx, rect.x - bw, rect.y - bw, rect.w + bw * 2, rect.h + bw * 2, radius + bw)
+      ctx.stroke()
+      roundRectPath(ctx, rect.x, rect.y, rect.w, rect.h, radius)
+      ctx.stroke()
+    } else if (direction === 'inward') {
+      ctx.save()
+      roundRectPath(ctx, rect.x, rect.y, rect.w, rect.h, radius)
+      ctx.clip()
+      roundRectPath(ctx, rect.x, rect.y, rect.w, rect.h, radius)
+      ctx.stroke()
+      roundRectPath(ctx, rect.x + bw, rect.y + bw, rect.w - bw * 2, rect.h - bw * 2, Math.max(0, radius - bw))
+      ctx.stroke()
+      ctx.restore()
+    } else {
+      const d = bw / 2
+      roundRectPath(ctx, rect.x - d, rect.y - d, rect.w + d * 2, rect.h + d * 2, radius + d)
+      ctx.stroke()
+      roundRectPath(ctx, rect.x + d, rect.y + d, rect.w - d * 2, rect.h - d * 2, Math.max(0, radius - d))
+      ctx.stroke()
+    }
+    ctx.restore()
+    return
+  }
+
+  ctx.lineWidth = bw
+  if (direction === 'outward') {
+    const pad = bw / 2
+    applyDash()
+    roundRectPath(ctx, rect.x - pad, rect.y - pad, rect.w + bw, rect.h + bw, radius + pad)
+    ctx.stroke()
+  } else if (direction === 'inward') {
+    ctx.save()
+    roundRectPath(ctx, rect.x, rect.y, rect.w, rect.h, radius)
+    ctx.clip()
+    ctx.lineWidth = bw * 2
+    applyDash()
+    roundRectPath(ctx, rect.x, rect.y, rect.w, rect.h, radius)
+    ctx.stroke()
+    ctx.restore()
+  } else {
+    applyDash()
+    roundRectPath(ctx, rect.x, rect.y, rect.w, rect.h, radius)
+    ctx.stroke()
+  }
+  ctx.restore()
+}
+
 /** 绘制单个格子的边框 */
 function drawCellBorder(
   ctx: CanvasRenderingContext2D,
@@ -176,33 +258,13 @@ function drawCellBorder(
   radius: number,
 ): void {
   if (border.width <= 0) return
-  const bw = border.width
-  ctx.save()
-  if (border.direction === 'outward') {
-    // 向外：边框画在格子外部
-    const pad = bw / 2
-    ctx.strokeStyle = border.color
-    ctx.lineWidth = bw
-    roundRectPath(ctx, cell.x - pad, cell.y - pad, cell.w + bw, cell.h + bw, radius + pad)
-    ctx.stroke()
-  } else if (border.direction === 'inward') {
-    // 向内：边框画在格子内部，先 clip 后画线
-    ctx.save()
-    roundRectPath(ctx, cell.x, cell.y, cell.w, cell.h, radius)
-    ctx.clip()
-    ctx.strokeStyle = border.color
-    ctx.lineWidth = bw * 2
-    roundRectPath(ctx, cell.x, cell.y, cell.w, cell.h, radius)
-    ctx.stroke()
-    ctx.restore()
-  } else {
-    // 居中：边框沿格子边界
-    ctx.strokeStyle = border.color
-    ctx.lineWidth = bw
-    roundRectPath(ctx, cell.x, cell.y, cell.w, cell.h, radius)
-    ctx.stroke()
-  }
-  ctx.restore()
+  strokeBorder(
+    ctx,
+    cell,
+    radius,
+    { width: border.width, color: border.color, pattern: border.pattern ?? 'solid' },
+    border.direction,
+  )
 }
 
 /** 绘制浮层素材 */
@@ -225,6 +287,19 @@ function drawAssetOverlay(
   ctx.globalAlpha = overlay.opacity
   ctx.translate(cx, cy)
   if (overlay.rotation !== 0) ctx.rotate((overlay.rotation * Math.PI) / 180)
+
+  // 边框（随浮层一起缩放、旋转）
+  const borderPx = (overlay.borderWidth ?? 0) * scale * overlay.scale
+  if (borderPx > 0) {
+    strokeBorder(
+      ctx,
+      { x: -dw / 2, y: -dh / 2, w: dw, h: dh },
+      0,
+      { width: borderPx, color: overlay.borderColor ?? '#ffffff', pattern: overlay.borderPattern ?? 'solid' },
+      'center',
+    )
+  }
+
   ctx.drawImage(overlay.source, -dw / 2, -dh / 2, dw, dh)
   ctx.restore()
 }
@@ -386,18 +461,23 @@ export function drawCollage(
   }
   const solved = solveLayout(scene.layout, content, gap)
 
-  solved.names.forEach((name, index) => {
-    let cell = solved.cells[name]
-    if (!cell || cell.w <= 0 || cell.h <= 0) return
+  const cells = resolveCells(solved.cells, scene.cellSizes)
+  const nameToIndex = new Map<string, number>()
+  solved.names.forEach((n, i) => nameToIndex.set(n, i))
 
-    // 应用单个格子大小缩放
-    const cellSizeScale = scene.cellSizes?.[name]
-    if (cellSizeScale) {
-      // 缩放后保持格子左上角不动，只改宽高
-      const w = cell.w * cellSizeScale.w
-      const h = cell.h * cellSizeScale.h
-      cell = { ...cell, w, h }
-    }
+  // 调整过大小（框体缩放 ≠ 1）的格子最后绘制，浮于其它未调整框体之上
+  const drawOrder = solved.names.slice().sort((a, b) => {
+    const am = isCellResized(scene.cellSizes?.[a])
+    const bm = isCellResized(scene.cellSizes?.[b])
+    if (am !== bm) return am ? 1 : -1
+    return 0
+  })
+
+  drawOrder.forEach((name) => {
+    const cell = cells[name]
+    if (!cell || cell.w <= 0 || cell.h <= 0) return
+    const index = nameToIndex.get(name)
+    if (index == null) return
 
     const photo = scene.slots[index]
     if (photo) {

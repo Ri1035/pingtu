@@ -93,8 +93,12 @@ export interface TextItem {
 
 /** 画布样式 */
 export interface CanvasStyle {
-  /** 画布比例，'auto' 或 'w/h'，例如 '16/9' */
+  /** 画布比例，'auto' / 'w/h' / 'custom'，例如 '16/9' */
   ratio: string
+  /** 自定义画布宽度（ratio === 'custom' 时生效，像素） */
+  customWidth: number
+  /** 自定义画布高度（ratio === 'custom' 时生效，像素） */
+  customHeight: number
   /** 外边距（设计像素，基准宽度 BASE_WIDTH） */
   margin: number
   /** 图片间距（设计像素） */
@@ -182,6 +186,9 @@ export interface StickerItem {
   isEmoji: boolean
 }
 
+/** 边框样式：实线 / 虚线 / 点线 / 双线 */
+export type BorderPattern = 'solid' | 'dashed' | 'dotted' | 'double'
+
 /**
  * 单个格子的边框设置。
  */
@@ -192,6 +199,8 @@ export interface CellBorder {
   color: string
   /** 边框方向：向内 / 向外 / 居中 */
   direction: 'inward' | 'outward' | 'center'
+  /** 边框样式 */
+  pattern: BorderPattern
 }
 
 /**
@@ -221,8 +230,14 @@ export interface AssetOverlay {
   scale: number
   /** 旋转角度（度） */
   rotation: number
-  /** 透明度 0~1 */
+  /** 不透明度 0~1 */
   opacity: number
+  /** 边框宽度（设计像素，0 = 无边框） */
+  borderWidth: number
+  /** 边框颜色 */
+  borderColor: string
+  /** 边框样式 */
+  borderPattern: BorderPattern
   /** 图片的 HTMLImageElement，用于绘制 */
   source: HTMLImageElement
   /** 原始文件名 */
