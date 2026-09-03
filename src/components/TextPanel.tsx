@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
-import { Field, Slider } from './ui/Controls'
+import { Field, Slider, Segmented, Switch } from './ui/Controls'
 import { useI18n } from '../i18n'
 import type { CollageStore } from '../hooks/useCollage'
 import { detectFonts, type FontInfo } from '../lib/fonts'
@@ -165,6 +165,7 @@ export function TextPanel({ store, selectedTextId, onSelectText }: Props) {
               className={`btn${selected.bold ? ' btn-primary' : ''}`}
               onClick={() => updateText(selected.id, { bold: !selected.bold })}
               aria-pressed={selected.bold}
+              title={t('textBold')}
             >
               <strong>B</strong>
             </button>
@@ -173,8 +174,18 @@ export function TextPanel({ store, selectedTextId, onSelectText }: Props) {
               className={`btn${selected.italic ? ' btn-primary' : ''}`}
               onClick={() => updateText(selected.id, { italic: !selected.italic })}
               aria-pressed={selected.italic}
+              title={t('textItalic')}
             >
               <em>I</em>
+            </button>
+            <button
+              type="button"
+              className={`btn${selected.underline ? ' btn-primary' : ''}`}
+              onClick={() => updateText(selected.id, { underline: !selected.underline })}
+              aria-pressed={selected.underline}
+              title={t('textUnderline')}
+            >
+              <span style={{ textDecoration: 'underline' }}>U</span>
             </button>
           </div>
 
@@ -186,6 +197,130 @@ export function TextPanel({ store, selectedTextId, onSelectText }: Props) {
               onChange={(v) => updateText(selected.id, { rotation: v })}
             />
           </Field>
+
+          <Field label={t('textAlign')}>
+            <Segmented
+              value={selected.align ?? 'center'}
+              onChange={(v) => updateText(selected.id, { align: v })}
+              options={[
+                { value: 'left' as const, label: t('alignLeft') },
+                { value: 'center' as const, label: t('alignCenter') },
+                { value: 'right' as const, label: t('alignRight') },
+              ]}
+            />
+          </Field>
+
+          <Field label={t('textLineHeight')} value={`${(selected.lineHeight ?? 1.25).toFixed(2)}×`}>
+            <Slider
+              value={selected.lineHeight ?? 1.25}
+              min={1}
+              max={2.5}
+              step={0.05}
+              onChange={(v) => updateText(selected.id, { lineHeight: v })}
+            />
+          </Field>
+
+          <Field label={t('textLetterSpacing')} value={`${selected.letterSpacing ?? 0}px`}>
+            <Slider
+              value={selected.letterSpacing ?? 0}
+              min={-5}
+              max={20}
+              step={0.5}
+              onChange={(v) => updateText(selected.id, { letterSpacing: v })}
+            />
+          </Field>
+
+          <Field label={t('opacity')} value={`${Math.round((selected.opacity ?? 1) * 100)}%`}>
+            <Slider
+              value={selected.opacity ?? 1}
+              min={0}
+              max={1}
+              step={0.05}
+              onChange={(v) => updateText(selected.id, { opacity: v })}
+            />
+          </Field>
+
+          <div className="divider" />
+
+          {/* 描边 */}
+          <Switch
+            checked={(selected.strokeWidth ?? 0) > 0}
+            label={t('textStroke')}
+            onChange={(on) => updateText(selected.id, { strokeWidth: on ? 2 : 0 })}
+          />
+          {(selected.strokeWidth ?? 0) > 0 && (
+            <>
+              <Field label={t('textStrokeWidth')} value={`${selected.strokeWidth}px`}>
+                <Slider
+                  value={selected.strokeWidth}
+                  min={1}
+                  max={20}
+                  step={1}
+                  onChange={(v) => updateText(selected.id, { strokeWidth: v })}
+                />
+              </Field>
+              <Field label={t('textStrokeColor')}>
+                <div className="color-row">
+                  <input
+                    className="swatch"
+                    type="color"
+                    value={selected.strokeColor ?? '#111827'}
+                    onChange={(e) => updateText(selected.id, { strokeColor: e.target.value })}
+                    aria-label={t('textStrokeColor')}
+                  />
+                </div>
+              </Field>
+            </>
+          )}
+
+          {/* 阴影 */}
+          <Switch
+            checked={(selected.shadowBlur ?? 0) > 0}
+            label={t('textShadow')}
+            onChange={(on) => updateText(selected.id, { shadowBlur: on ? 8 : 0 })}
+          />
+          {(selected.shadowBlur ?? 0) > 0 && (
+            <>
+              <Field label={t('textShadowBlur')} value={`${selected.shadowBlur}px`}>
+                <Slider
+                  value={selected.shadowBlur}
+                  min={0}
+                  max={40}
+                  step={1}
+                  onChange={(v) => updateText(selected.id, { shadowBlur: v })}
+                />
+              </Field>
+              <Field label={t('textShadowOffsetX')} value={`${selected.shadowOffsetX ?? 0}px`}>
+                <Slider
+                  value={selected.shadowOffsetX ?? 0}
+                  min={-30}
+                  max={30}
+                  step={1}
+                  onChange={(v) => updateText(selected.id, { shadowOffsetX: v })}
+                />
+              </Field>
+              <Field label={t('textShadowOffsetY')} value={`${selected.shadowOffsetY ?? 0}px`}>
+                <Slider
+                  value={selected.shadowOffsetY ?? 0}
+                  min={-30}
+                  max={30}
+                  step={1}
+                  onChange={(v) => updateText(selected.id, { shadowOffsetY: v })}
+                />
+              </Field>
+              <Field label={t('textShadowColor')}>
+                <div className="color-row">
+                  <input
+                    className="swatch"
+                    type="color"
+                    value={selected.shadowColor ?? '#000000'}
+                    onChange={(e) => updateText(selected.id, { shadowColor: e.target.value })}
+                    aria-label={t('textShadowColor')}
+                  />
+                </div>
+              </Field>
+            </>
+          )}
 
           <button
             type="button"
