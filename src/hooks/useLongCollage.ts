@@ -56,9 +56,18 @@ export function useLongCollage() {
     setExportStateRaw((prev) => ({ ...prev, ...patch }))
   }, [])
 
-  const addFiles = useCallback(async (files: File[] | FileList) => {
+  // atIndex 存在时在指定位置插入（按 index 处插入多条 loaded），否则追加到堆叠末尾。
+  // 用于「素材库插入到长图指定位置」：堆叠里选中某一项后，新素材就插到它后面。
+  const addFiles = useCallback(async (files: File[] | FileList, atIndex?: number) => {
     const { photos: loaded, errors } = await loadImageFiles(files)
-    if (loaded.length > 0) setPhotos((prev) => [...prev, ...loaded])
+    if (loaded.length > 0) {
+      setPhotos((prev) => {
+        if (atIndex == null || atIndex < 0 || atIndex > prev.length) return [...prev, ...loaded]
+        const next = prev.slice()
+        next.splice(atIndex, 0, ...loaded)
+        return next
+      })
+    }
     if (errors.length > 0) setNotice(errors[0])
     return loaded.length
   }, [])

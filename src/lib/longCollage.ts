@@ -199,6 +199,13 @@ function drawTitle(ctx: CanvasRenderingContext2D, style: LongStyle, width: numbe
 export interface LongDrawOptions {
   /** 透明背景下的棋盘格（仅预览） */
   checkerboard?: boolean
+  /**
+   * 绘制的图层范围。
+   *  - base：仅背景/棋盘格 + 图片堆叠（可缓存复用）
+   *  - overlay：仅标题 + 文字 + 水印（在 base 之上叠加，拖拽文字时只重画这层，显著减少逐帧开销）
+   *  - full（默认）：base + overlay 一次性画完
+   */
+  layers?: 'full' | 'base' | 'overlay'
 }
 
 /**
@@ -214,40 +221,48 @@ export function drawLongCollage(
   const layout = layoutLong(scene.photos, scene.style, canvasWidth)
   const { width, height } = layout
   const feather = Math.max(0, (scene.style.feather * width) / Math.max(1, scene.style.width))
+  const mode = options.layers ?? 'full'
 
   ctx.save()
-  ctx.clearRect(0, 0, width, height)
 
-  const opaque = !scene.style.transparent
-  if (opaque) {
-    ctx.fillStyle = scene.style.background
-    ctx.fillRect(0, 0, width, height)
-  } else if (options.checkerboard) {
-    drawCheckerboard(ctx, width, height)
-  }
+  if (mode !== 'overlay') {
+    ctx.clearRect(0, 0, width, height)
 
-  ctx.imageSmoothingEnabled = true
-  ctx.imageSmoothingQuality = 'high'
-
-  // 由下往上顺次绘制；相邻两图通过「上一张下缘淡出 + 下一张上缘淡入」交叉过渡
-  if (scene.photos.length > 0) {
-    for (let i = 0; i < layout.cells.length; i++) {
-      const cell = layout.cells[i]
-      paintCell(ctx, scene.photos[cell.index], cell, feather, i > 0, i < layout.cells.length - 1)
+    const opaque = !scene.style.transparent
+    if (opaque) {
+      ctx.fillStyle = scene.style.background
+      ctx.fillRect(0, 0, width, height)
+    } else if (options.checkerboard) {
+      drawCheckerboard(ctx, width, height)
     }
-  }
 
-  // 顶部标题 + 附加文字
-  drawTitle(ctx, scene.style, width, height)
-  if (scene.texts) {
-    for (const text of scene.texts) {
-      drawText(ctx, text, width, height)
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+
+    // 由下往上顺次绘制；相邻两图通过「上一张下缘淡出 + 下一张上缘淡入」交叉过渡
+    if (scene.photos.length > 0) {
+      for (let i = 0; i < layout.cells.length; i++) {
+        const cell = layout.cells[i]
+        paintCell(ctx, scene.photos[cell.index], cell, feather, i > 0, i < layout.cells.length - 1)
+      }
     }
+
+    // 顶部标题并入基础层（静态内容，随基础层一起缓存，拖拽文字时无需重画）
+    drawTitle(ctx, scene.style, width, height)
   }
 
-  // 水印叠加最上层
-  if (scene.watermark) {
-    drawWatermark(ctx, scene.watermark, scene.watermarkImage ?? null, width, height)
+  if (mode !== 'base') {
+    // 附加文字（动态层，拖拽时只重画这层）+ 水印
+    if (scene.texts) {
+      for (const text of scene.texts) {
+        drawText(ctx, text, width, height)
+      }
+    }
+
+    // 水印叠加最上层
+    if (scene.watermark) {
+      drawWatermark(ctx, scene.watermark, scene.watermarkImage ?? null, width, height)
+    }
   }
 
   ctx.restore()

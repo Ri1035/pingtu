@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, Download, ImagePlus, Loader2, Trash2 } from 'lucide-react'
 import { Field, NumberInput, Segmented, Slider, Switch } from './ui/Controls'
 import { TextPanel, type TextStore } from './TextPanel'
@@ -29,13 +29,15 @@ export function LongCollagePanel({ store, assetStore, selectedTextId, onSelectTe
   const { t } = useI18n()
   const { photos, style, setStyle, texts, exportState, setExportState, addFiles, removePhoto, movePhoto, setNotice } = store
   const fileRef = useRef<HTMLInputElement>(null)
+  // 堆叠中选中的插入锚点（索引）：在此项后面插入素材库图片；null = 追加到末尾
+  const [insertAt, setInsertAt] = useState<number | null>(null)
 
   const isWidthPreset = LONG_WIDTH_PRESETS.includes(style.width)
   const selectedText = texts.find((it) => it.id === selectedTextId) ?? null
 
-  /** 把素材库的图片追加到长拼图堆叠队列 */
+  /** 把素材库的图片追加到长拼图堆叠队列（若已选中插入点，则插到其后面） */
   const handleAddAsset = (file: File) => {
-    void addFiles([file])
+    void addFiles([file], insertAt != null ? insertAt + 1 : undefined)
   }
 
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,23 +64,40 @@ export function LongCollagePanel({ store, assetStore, selectedTextId, onSelectTe
           <div className="section-title">{t('longStack')}</div>
           <div className="long-stack">
             {photos.map((photo, i) => (
-              <div key={photo.id} className="long-stack-item">
+              <div
+                key={photo.id}
+                className={`long-stack-item${insertAt === i ? ' is-insert-target' : ''}`}
+                onClick={() => setInsertAt(i === insertAt ? null : i)}
+                title={t('longInsertPick')}
+              >
                 <img className="long-stack-thumb" src={photo.thumb} alt="" />
                 <span className="long-stack-order">{i + 1}</span>
                 <span className="long-stack-name">{photo.name ?? photo.id}</span>
                 <div className="long-stack-actions">
-                  <button type="button" title={t('longMoveUp')} disabled={i === 0} onClick={() => movePhoto(i, -1)}>
+                  <button type="button" title={t('longMoveUp')} disabled={i === 0} onClick={(e) => { e.stopPropagation(); movePhoto(i, -1) }}>
                     <ArrowUp size={14} />
                   </button>
-                  <button type="button" title={t('longMoveDown')} disabled={i === photos.length - 1} onClick={() => movePhoto(i, 1)}>
+                  <button type="button" title={t('longMoveDown')} disabled={i === photos.length - 1} onClick={(e) => { e.stopPropagation(); movePhoto(i, 1) }}>
                     <ArrowDown size={14} />
                   </button>
-                  <button type="button" title={t('longRemove')} onClick={() => removePhoto(photo.id)}>
+                  <button type="button" title={t('longRemove')} onClick={(e) => { e.stopPropagation(); removePhoto(photo.id) }}>
                     <Trash2 size={14} />
                   </button>
                 </div>
               </div>
             ))}
+          </div>
+          <div className="field-hint" style={{ marginTop: 6 }}>
+            {insertAt != null ? (
+              <>
+                {t('longInsertActive', insertAt + 1)}
+                <button type="button" className="btn btn-ghost" style={{ marginLeft: 8 }} onClick={() => setInsertAt(null)}>
+                  {t('longInsertCancel')}
+                </button>
+              </>
+            ) : (
+              t('longInsertHint')
+            )}
           </div>
           <div className="divider" />
         </section>

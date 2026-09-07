@@ -73,6 +73,8 @@ export interface TextItem {
   scaleX?: number
   /** 垂直缩放（变形，默认 1，相对文字中心） */
   scaleY?: number
+  /** 水平斜切角度（度，默认 0，以文字中心为原点的水平剪切） */
+  skewX?: number
   /** 下划线 */
   underline: boolean
   /** 描边颜色（strokeWidth 为 0 时不描边） */

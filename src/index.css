@@ -437,6 +437,28 @@ input, select, textarea {
   box-shadow: 0 0 0 2px var(--accent);
 }
 
+/* 文字变形预设按钮 */
+.deform-preset-btn {
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  border-radius: 6px;
+  padding: 4px 7px;
+  cursor: pointer;
+  color: inherit;
+}
+.deform-preset-btn:hover {
+  border-color: var(--accent);
+}
+.deform-preset-btn.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.deform-preset-sample {
+  display: inline-block;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
 /* 开关 */
 .switch-row {
   display: flex;
@@ -2018,6 +2040,12 @@ input, select, textarea {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--panel-2);
+  cursor: pointer;
+}
+.long-stack-item.is-insert-target {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel-2));
 }
 .long-stack-thumb {
   width: 40px;

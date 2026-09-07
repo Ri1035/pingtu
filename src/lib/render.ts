@@ -389,6 +389,9 @@ export function drawText(ctx: CanvasRenderingContext2D, text: TextItem, width: n
   const sx = text.scaleX ?? 1
   const sy = text.scaleY ?? 1
   if (sx !== 1 || sy !== 1) ctx.scale(sx, sy)
+  // 斜切（水平剪切，度）
+  const skewRad = ((text.skewX ?? 0) * Math.PI) / 180
+  if (skewRad !== 0) ctx.transform(1, 0, Math.tan(skewRad), 1, 0, 0)
 
   ctx.globalAlpha = Math.min(1, Math.max(0, text.opacity ?? 1))
 

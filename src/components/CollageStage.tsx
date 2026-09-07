@@ -164,6 +164,30 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
     moved: boolean
   } | null>(null)
 
+  // rAF 合并拖拽位移：捏合/平移/文字/浮层都在一帧内只提交一次状态更新，避免高频事件造成重渲抖动
+  const moveRaf = useRef<number | null>(null)
+  const pendingCommit = useRef<(() => void) | null>(null)
+  const scheduleCommit = useCallback((commit: () => void) => {
+    pendingCommit.current = commit
+    if (moveRaf.current == null) {
+      moveRaf.current = requestAnimationFrame(() => {
+        moveRaf.current = null
+        const fn = pendingCommit.current
+        pendingCommit.current = null
+        if (fn) fn()
+      })
+    }
+  }, [])
+  const flushCommit = useCallback(() => {
+    if (moveRaf.current != null) {
+      cancelAnimationFrame(moveRaf.current)
+      moveRaf.current = null
+    }
+    const fn = pendingCommit.current
+    pendingCommit.current = null
+    if (fn) fn()
+  }, [])
+
   // —— 容器尺寸 ——
   useLayoutEffect(() => {
     const el = containerRef.current
@@ -225,7 +249,10 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       const h = lines.length * lineHeight * (text.scaleY ?? 1)
       const cx = text.x * preview.w
       const cy = text.y * preview.h
-      return { x: cx - (maxW * (text.scaleX ?? 1)) / 2, y: cy - h / 2, w: maxW * (text.scaleX ?? 1), h }
+      // 斜切按「中心为原点的水平剪切」计入外接盒：x 方向整体加宽 |tan| * 半高
+      const W = maxW * (text.scaleX ?? 1)
+      const shear = Math.abs(Math.tan(((text.skewX ?? 0) * Math.PI) / 180)) * h * 0.5
+      return { x: cx - W / 2 - shear, y: cy - h / 2, w: W + shear * 2, h }
     },
     [preview],
   )
@@ -551,10 +578,12 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       od.moved = true
       const rect = canvasRef.current?.getBoundingClientRect()
       if (!rect || rect.width <= 0 || rect.height <= 0) return
-      updateOverlay(od.overlayId, {
-        x: clamp01(od.startOvX + dx / rect.width),
-        y: clamp01(od.startOvY + dy / rect.height),
-      })
+      scheduleCommit(() =>
+        updateOverlay(od.overlayId, {
+          x: clamp01(od.startOvX + dx / rect.width),
+          y: clamp01(od.startOvY + dy / rect.height),
+        }),
+      )
       return
     }
 
@@ -570,7 +599,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
       // 屏幕像素位移 → 画布比例位移（canvas CSS 宽即 preview.w，对应 x 比例 0~1）
       const nx = td.startTextX + dx / rect.width
       const ny = td.startTextY + dy / rect.height
-      updateText(td.textId, { x: clamp01(nx), y: clamp01(ny) })
+      scheduleCommit(() => updateText(td.textId, { x: clamp01(nx), y: clamp01(ny) }))
       return
     }
 
@@ -588,7 +617,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
           MAX_ZOOM,
           Math.max(minZoom, (pinch.current.startZoom * distance) / pinch.current.startDistance),
         )
-        updateTransform(photo.id, { zoom: next })
+        scheduleCommit(() => updateTransform(photo.id, { zoom: next }))
         flashZoom(next)
       }
       return
@@ -633,11 +662,14 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
     const nextOffsetY =
       Math.abs(geo.denomY) < 0.5 ? 0 : clamp(g.startOffsetY + py / geo.denomY, -0.5, 0.5)
     if (nextOffsetX !== transform.offsetX || nextOffsetY !== transform.offsetY) {
-      updateTransform(photo.id, { offsetX: nextOffsetX, offsetY: nextOffsetY })
+      scheduleCommit(() => updateTransform(photo.id, { offsetX: nextOffsetX, offsetY: nextOffsetY }))
     }
   }
 
   const finishGesture = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    // 立即落定所有待提交的拖拽位移（文字 / 浮层 / 图片），避免结束前最后一帧被丢弃
+    flushCommit()
+
     // 浮层素材拖拽结束
     if (overlayDrag.current && overlayDrag.current.pointerId === e.pointerId) {
       overlayDrag.current = null

@@ -372,6 +372,51 @@ export function TextPanel({ store, selectedTextId, onSelectText }: Props) {
             />
           </Field>
 
+          <Field label={t('textSkew')} value={`${selected.skewX ?? 0}°`}>
+            <Slider
+              value={selected.skewX ?? 0}
+              min={-45}
+              max={45}
+              step={1}
+              onChange={(v) => updateText(selected.id, { skewX: v })}
+            />
+          </Field>
+
+          {/* 变形预设 */}
+          <div className="field">
+            <div className="field-head">
+              <span className="field-label">{t('deformPreset')}</span>
+            </div>
+            <div className="preset-colors" style={{ marginTop: 6 }}>
+              {[
+                { label: t('deformNormal'), patch: { scaleX: 1, scaleY: 1, skewX: 0 } },
+                { label: t('deformWide'), patch: { scaleX: 1.5, scaleY: 1, skewX: 0 } },
+                { label: t('deformTall'), patch: { scaleX: 1, scaleY: 1.5, skewX: 0 } },
+                { label: t('deformFlat'), patch: { scaleX: 1.6, scaleY: 0.6, skewX: 0 } },
+                { label: t('deformSlantL'), patch: { scaleX: 1, scaleY: 1, skewX: -15 } },
+                { label: t('deformSlantR'), patch: { scaleX: 1, scaleY: 1, skewX: 15 } },
+              ].map((preset) => {
+                const active =
+                  (selected.scaleX ?? 1) === preset.patch.scaleX &&
+                  (selected.scaleY ?? 1) === preset.patch.scaleY &&
+                  (selected.skewX ?? 0) === preset.patch.skewX
+                return (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    className={`deform-preset-btn${active ? ' is-active' : ''}`}
+                    onClick={() => updateText(selected.id, preset.patch)}
+                    title={preset.label}
+                  >
+                    <span className="deform-preset-sample" style={{ fontStyle: 'italic', letterSpacing: -0.5 }}>
+                      {preset.label}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           <button
             type="button"
             className="btn btn-danger"

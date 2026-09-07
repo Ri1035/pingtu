@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ImagePlus, Upload } from 'lucide-react'
 import { useI18n } from '../i18n'
 import type { LongStore } from '../hooks/useLongCollage'
 import { drawLongCollage } from '../lib/longCollage'
+import { drawText, drawWatermark } from '../lib/render'
 import type { TextItem } from '../types'
 
 /** 预览画布的安全高度上限，防止超大长图触发浏览器 canvas 尺寸限制 */
@@ -38,9 +39,29 @@ export function LongStage({ store, selectedTextId, onSelectText }: Props) {
   const { scene, layout, addFiles, setViewY, updateText, texts } = store
   const scrollerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  // 离屏基础层缓存：背景/棋盘格 + 图片堆叠 + 标题（静态，仅在这些变化或容器尺寸变化时重画）。
+  // 拖拽文字时直接 drawImage 贴回，避免逐帧重跑 paintCell 的离屏渐变，显著降低卡顿。
+  const baseCanvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
   const textDrag = useRef<TextDrag | null>(null)
+  // rAF 合并拖拽位移：一帧只提交一次状态更新，避免高频 pointer 事件导致重渲抖动
+  const textDragRaf = useRef<number | null>(null)
+  const pendingTextMove = useRef<{ id: string; x: number; y: number } | null>(null)
   const [boxW, setBoxW] = useState(0)
   const [isDropping, setIsDropping] = useState(false)
+  // 基础层重画后自增，驱动动态层在下一次渲染时重新合成
+  const [baseKey, setBaseKey] = useState(0)
+
+  // 预览绘制尺寸：以设计宽度为准，过低时放大填满可用宽度，高度封顶
+  const drawSize = useMemo(() => {
+    const designW = Math.max(1, layout.width)
+    if (designW <= 0) return null
+    let drawW = Math.max(designW, Math.round(boxW))
+    if (layout.height > 0 && (layout.height / designW) * drawW > PREVIEW_MAX_H) {
+      drawW = Math.max(1, Math.floor((PREVIEW_MAX_H * designW) / layout.height))
+    }
+    const drawH = Math.max(1, Math.round((layout.height / designW) * drawW))
+    return { designW, drawW, drawH }
+  }, [layout, boxW])
 
   useEffect(() => {
     const el = scrollerRef.current
@@ -60,42 +81,22 @@ export function LongStage({ store, selectedTextId, onSelectText }: Props) {
     setViewY((el.scrollTop + el.clientHeight / 2) / el.scrollHeight)
   }, [setViewY])
 
-  // 依据可用宽度重绘预览
+  // —— 基础层：背景/棋盘格 + 图片堆叠 + 标题 ——
+  // 只在图片、样式或容器尺寸变化时重画到离屏画布，拖拽文字不会触碰这层。
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas || scene.photos.length === 0) return
-
-    const designW = Math.max(1, layout.width)
-    let drawW = Math.max(designW, Math.round(boxW))
-    // 高度封顶：过长时降低绘制宽度，保证不超过浏览器 canvas 上限
-    if (designW > 0 && (layout.height / designW) * drawW > PREVIEW_MAX_H) {
-      drawW = Math.max(1, Math.floor((PREVIEW_MAX_H * designW) / layout.height))
-    }
-    const drawH = Math.max(1, Math.round((layout.height / designW) * drawW))
-    if (canvas.width !== drawW) canvas.width = drawW
-    if (canvas.height !== drawH) canvas.height = drawH
-
-    const ctx = canvas.getContext('2d')
+    if (!drawSize || scene.photos.length === 0) return
+    const { designW, drawW, drawH } = drawSize
+    const base = baseCanvasRef.current
+    if (base.width !== drawW) base.width = drawW
+    if (base.height !== drawH) base.height = drawH
+    const ctx = base.getContext('2d')
     if (!ctx) return
     drawLongCollage(ctx, { ...scene, style: { ...scene.style, width: designW } }, drawW, {
+      layers: 'base',
       checkerboard: scene.style.transparent,
     })
-
-    // 选中文字虚线框（在 drawW 设计坐标系里绘制）
-    if (selectedTextId) {
-      const st = texts.find((ite) => ite.id === selectedTextId)
-      const b = st ? textBounds(st, drawW, drawH) : null
-      if (b) {
-        const pad = 6
-        ctx.save()
-        ctx.setLineDash([5, 4])
-        ctx.lineWidth = 1.5
-        ctx.strokeStyle = '#2563eb'
-        ctx.strokeRect(b.x - pad, b.y - pad, b.w + pad * 2, (b.h || 0) + pad * 2)
-        ctx.restore()
-      }
-    }
-  }, [scene, layout, boxW, selectedTextId, texts])
+    setBaseKey((k) => k + 1)
+  }, [scene.photos, scene.style, drawSize])
 
   /** 计算文字在画布设计坐标系里的外接盒（与 drawText 使用同一 fontSize 缩放） */
   const textBounds = useCallback(
@@ -118,10 +119,55 @@ export function LongStage({ store, selectedTextId, onSelectText }: Props) {
       const hScale = text.scaleY ?? 1
       const cx = text.x * w
       const cy = text.y * h
-      return { x: cx - (maxW * wScale) / 2, y: cy - (lines.length * lineHeight * hScale) / 2, w: maxW * wScale, h: lines.length * lineHeight * hScale }
+      // 斜切按「中心为原点的水平剪切」计入外接盒：x 方向整体加宽 |tan| * 半高
+      const W = maxW * wScale
+      const H = lines.length * lineHeight * hScale
+      const shear = Math.abs(Math.tan(((text.skewX ?? 0) * Math.PI) / 180)) * H * 0.5
+      return { x: cx - W / 2 - shear, y: cy - H / 2, w: W + shear * 2, h: H }
     },
     [],
   )
+
+  // 组合绘制：贴回缓存的 base，再叠加上动态层（文字 + 水印）+ 选中框。
+  // 字体缩放口径与 drawLongCollage 一致（fontSize 以 1600 为基准）。
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !drawSize || scene.photos.length === 0) return
+    const { drawW, drawH } = drawSize
+    if (canvas.width !== drawW) canvas.width = drawW
+    if (canvas.height !== drawH) canvas.height = drawH
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const base = baseCanvasRef.current
+    if (base.width === drawW && base.height === drawH) ctx.drawImage(base, 0, 0)
+
+    // 附加文字（动态层）
+    if (scene.texts) {
+      for (const text of scene.texts) {
+        drawText(ctx, text, drawW, drawH)
+      }
+    }
+    // 水印叠加最上层
+    if (scene.watermark) {
+      drawWatermark(ctx, scene.watermark, scene.watermarkImage ?? null, drawW, drawH)
+    }
+
+    // 选中文字虚线框（在画布设计坐标系里绘制）
+    if (selectedTextId) {
+      const st = texts.find((ite) => ite.id === selectedTextId)
+      const b = st ? textBounds(st, drawW, drawH) : null
+      if (b) {
+        const pad = 6
+        ctx.save()
+        ctx.setLineDash([5, 4])
+        ctx.lineWidth = 1.5
+        ctx.strokeStyle = '#2563eb'
+        ctx.strokeRect(b.x - pad, b.y - pad, b.w + pad * 2, (b.h || 0) + pad * 2)
+        ctx.restore()
+      }
+    }
+  }, [scene.texts, selectedTextId, scene.watermark, scene.watermarkImage, baseKey, drawSize, texts, textBounds])
 
   /** 命中测试：返回鼠标位置下的文字 id（后加入的在上层） */
   const textAt = useCallback(
@@ -180,14 +226,35 @@ export function LongStage({ store, selectedTextId, onSelectText }: Props) {
       // 屏幕像素位移 → 画布比例位移（canvas CSS 宽即画布逻辑宽）
       const nx = td.startTextX + dx / rect.width
       const ny = td.startTextY + dy / rect.height
-      updateText(td.textId, { x: Math.min(1, Math.max(0, nx)), y: Math.min(1, Math.max(0, ny)) })
+      pendingTextMove.current = { id: td.textId, x: Math.min(1, Math.max(0, nx)), y: Math.min(1, Math.max(0, ny)) }
+      if (textDragRaf.current == null) {
+        textDragRaf.current = requestAnimationFrame(() => {
+          textDragRaf.current = null
+          const p = pendingTextMove.current
+          pendingTextMove.current = null
+          if (p) updateText(p.id, { x: p.x, y: p.y })
+        })
+      }
     },
     [updateText],
   )
 
-  const onPointerUp = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (textDrag.current?.pointerId === e.pointerId) textDrag.current = null
-  }, [])
+  const onPointerUp = useCallback(
+    (e: React.PointerEvent<HTMLCanvasElement>) => {
+      if (textDrag.current?.pointerId === e.pointerId) {
+        // 拖拽结束时立即落定最后一个待提交的位置，避免丢帧
+        if (textDragRaf.current != null) {
+          cancelAnimationFrame(textDragRaf.current)
+          textDragRaf.current = null
+        }
+        const p = pendingTextMove.current
+        pendingTextMove.current = null
+        if (p) updateText(p.id, { x: p.x, y: p.y })
+        textDrag.current = null
+      }
+    },
+    [updateText],
+  )
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
