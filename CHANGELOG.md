@@ -5,6 +5,22 @@
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本（Semantic Versioning）](https://semver.org/lang/zh-CN/)。
 
+## [1.10.0] - 2026-09-07
+
+### Added
+- **改变一个框体，其它框体自适应调整**：选中格子工具条上的「放大 / 缩小」改为自适应框体调整——放大某格时，它所占每一列 / 每一行的网格权重（`gridTemplate` 的 fr）按比例增大，同行的右侧框体横向收缩、同列的下方框体纵向收缩、其余框体按比例重排；整张拼图始终保持无重叠、总尺寸不变，不再是旧版「覆盖在邻居之上的浮起」效果。主拼图与导出走同一份 `scene.layout`，所见即所得。
+
+### Changed
+- 新增 `geometry.applyTrackScale`：把单格缩放权重烘焙进网格轨道（仅作用于 fr 轨道，权重四舍五入到 4 位）。
+- `useCollage` 新增 `cellTrack` 状态与 `resizeCell` / `resetCellTrack`，生成 `effectiveLayout` 作为 `scene.layout`；`clearAll` 一并重置。
+- `CollageStage` 的放大 / 缩小按钮改调 `resizeCell`（倍数 1.15，权重收敛回 1 时自动移除记录）。
+- 保留旧 `cellSizes` 浮起机制于代码中，不再由按钮触发。
+- 版本号从 `v1.9.0` 升级到 `v1.10.0`。
+
+### Notes
+- `npm run typecheck / build` 通过（gzip ≈ 96.1 KB）。
+- 该功能仅作用于主拼图网格；长拼图为纵向堆叠，不涉及。
+
 ## [1.9.0] - 2026-09-07
 
 ### Added

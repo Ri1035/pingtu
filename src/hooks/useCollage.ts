@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { AssetOverlay, CanvasStyle, CellBorder, CellSizeScale, ExportOptions, GridLayout, PhotoItem, PhotoTransform, TextItem, WatermarkConfig } from '../types'
 import { getLayoutsForCount, MAX_COUNT, MIN_COUNT } from '../lib/layouts'
+import { applyTrackScale } from '../lib/geometry'
 import { DEFAULT_TRANSFORM, type CollageScene } from '../lib/render'
 import { DEFAULT_WATERMARK } from '../lib/watermark'
 import { loadImageFiles, disposePhoto } from '../lib/image'
@@ -96,6 +97,8 @@ export function useCollage() {
   const [texts, setTexts] = useState<TextItem[]>([])
   const [cellBorders, setCellBorders] = useState<Record<string, CellBorder>>({})
   const [cellSizes, setCellSizes] = useState<Record<string, CellSizeScale>>({})
+  // 自适应框体调整：单格所占行列的 fr 权重乘子（烘焙进 scene.layout 的轨道）
+  const [cellTrack, setCellTrack] = useState<Record<string, CellSizeScale>>({})
   const [overlays, setOverlays] = useState<AssetOverlay[]>([])
   const [watermark, setWatermarkRaw] = useState<WatermarkConfig>(DEFAULT_WATERMARK)
   const [watermarkImage, setWatermarkImage] = useState<HTMLImageElement | null>(null)
@@ -234,6 +237,7 @@ export function useCollage() {
     setTexts([])
     setCellBorders({})
     setCellSizes({})
+    setCellTrack({})
     setOverlays([])
     setWatermarkRaw(DEFAULT_WATERMARK)
     setWatermarkImage(null)
@@ -315,6 +319,29 @@ export function useCollage() {
     })
   }, [])
 
+  // —— 自适应框体调整 ——
+  /** 把指定格子的自适应权重 ×factor（factor>1 放大、<1 缩小）；收敛回 1 时移除记录 */
+  const resizeCell = useCallback((cellName: string, factor: number) => {
+    setCellTrack((prev) => {
+      const cur = prev[cellName] ?? { w: 1, h: 1 }
+      const clamp = (v: number) => Math.min(3, Math.max(1 / 3, v))
+      const nw = clamp(cur.w * factor)
+      const nh = clamp(cur.h * factor)
+      const next = { ...prev }
+      if (Math.abs(nw - 1) <= 1e-6 && Math.abs(nh - 1) <= 1e-6) delete next[cellName]
+      else next[cellName] = { w: nw, h: nh }
+      return next
+    })
+  }, [])
+
+  const resetCellTrack = useCallback((cellName: string) => {
+    setCellTrack((prev) => {
+      const next = { ...prev }
+      delete next[cellName]
+      return next
+    })
+  }, [])
+
   // —— 浮层素材 ——
   const addOverlay = useCallback((overlay: AssetOverlay) => {
     setOverlays((prev) => [...prev, overlay])
@@ -343,9 +370,15 @@ export function useCollage() {
     return names.map((_, index) => photos[index] ?? null)
   }, [layout, photos])
 
+  /** 自适应框体调整后的有效布局：把单格权重烘焙进 gridTemplate 轨道 */
+  const effectiveLayout: GridLayout = useMemo(
+    () => applyTrackScale(layout, cellTrack),
+    [layout, cellTrack],
+  )
+
   const scene: CollageScene = useMemo(
-    () => ({ layout, slots, transforms, style, texts, cellBorders, cellSizes, overlays, watermark, watermarkImage }),
-    [layout, slots, transforms, style, texts, cellBorders, cellSizes, overlays, watermark, watermarkImage],
+    () => ({ layout: effectiveLayout, slots, transforms, style, texts, cellBorders, cellSizes, overlays, watermark, watermarkImage }),
+    [effectiveLayout, slots, transforms, style, texts, cellBorders, cellSizes, overlays, watermark, watermarkImage],
   )
 
   const filledCount = slots.filter(Boolean).length
@@ -389,6 +422,10 @@ export function useCollage() {
     cellSizes,
     updateCellSize,
     resetCellSize,
+    // 自适应框体调整
+    cellTrack,
+    resizeCell,
+    resetCellTrack,
     // 浮层素材
     overlays,
     addOverlay,

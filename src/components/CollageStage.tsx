@@ -887,7 +887,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                   <button type="button" title={t('resetView')} aria-label={t('resetView')} onClick={() => resetTransform(toolbarPhoto.id)}>
                     <RefreshCw size={14} />
                   </button>
-                  {/* 单格放大 */}
+                  {/* 自适应放大：扩大该格所占列/行的权重，其它框体随之收缩 */}
                   <button
                     type="button"
                     title={t('cellEnlarge')}
@@ -895,13 +895,12 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                     onClick={() => {
                       const cellName = solved?.names[toolbarIndex]
                       if (!cellName) return
-                      const cur = store.cellSizes[cellName] ?? { w: 1, h: 1 }
-                      store.updateCellSize(cellName, { w: Math.min(3, cur.w * 1.15), h: Math.min(3, cur.h * 1.15) })
+                      store.resizeCell(cellName, 1.15)
                     }}
                   >
                     <Plus size={14} />
                   </button>
-                  {/* 单格缩小 */}
+                  {/* 自适应缩小：缩小该格所占列/行的权重，其它框体随之扩张 */}
                   <button
                     type="button"
                     title={t('cellShrink')}
@@ -909,10 +908,7 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
                     onClick={() => {
                       const cellName = solved?.names[toolbarIndex]
                       if (!cellName) return
-                      const cur = store.cellSizes[cellName] ?? { w: 1, h: 1 }
-                      const nw = Math.max(0.3, cur.w / 1.15)
-                      const nh = Math.max(0.3, cur.h / 1.15)
-                      store.updateCellSize(cellName, { w: nw, h: nh })
+                      store.resizeCell(cellName, 1 / 1.15)
                     }}
                   >
                     <Minus size={14} />

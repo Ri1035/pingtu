@@ -126,6 +126,52 @@ export function solveLayout(layout: GridLayout, content: CellRect, gap: number):
   return { cells, names }
 }
 
+/**
+ * 自适应框体调整：把「单格缩放权重」烘焙进网格轨道（fr 权重）。
+ * 当某个格子被调大时，它所占每一列 / 每一行的 fr 权重按比例增大，
+ * 其余未占用的轨道份额会被 fr 分配机制自动压缩 —— 即「改变一个框体，其它框体自适应重排」，
+ * 整张网格始终无重叠、总尺寸不变，预览与导出走同一份 scene.layout，天然一致。
+ *
+ * @param scale name → { w, h }，表示该格所占各列的权重 ×w、所占各行的权重 ×h
+ */
+export function applyTrackScale(layout: GridLayout, scale?: Record<string, CellSizeScale>): GridLayout {
+  if (!scale || Object.keys(scale).length === 0) return layout
+
+  const grid: string[][] = layout.areas.map((row) => row.trim().split(/\s+/).filter(Boolean))
+  const rowCount = grid.length
+  const colCount = grid.reduce((max, row) => Math.max(max, row.length), 0)
+  if (rowCount === 0 || colCount === 0) return layout
+
+  const { columns, rows } = splitTemplate(layout.gridTemplate, rowCount)
+  const colT = normalizeTracks(parseTracks(columns), colCount).map((t) => ({ value: t.value, unit: t.unit }))
+  const rowT = normalizeTracks(parseTracks(rows), rowCount).map((t) => ({ value: t.value, unit: t.unit }))
+
+  for (const [name, s] of Object.entries(scale)) {
+    if (!s || (Math.abs(s.w - 1) <= 1e-6 && Math.abs(s.h - 1) <= 1e-6)) continue
+    const cols = new Set<number>()
+    const rowsSet = new Set<number>()
+    grid.forEach((row, r) => {
+      row.forEach((token, c) => {
+        if (token === name) {
+          cols.add(c)
+          rowsSet.add(r)
+        }
+      })
+    })
+    // 仅放大 fr 轨道；px 轨道保持固定尺寸（本项目布局均为 fr，此为兜底保护）
+    for (const c of cols) if (colT[c] && colT[c].unit === 'fr') colT[c].value *= s.w
+    for (const r of rowsSet) if (rowT[r] && rowT[r].unit === 'fr') rowT[r].value *= s.h
+  }
+
+  const fmt = (t: Track[]) => t.map((x) => (x.unit === 'px' ? `${x.value}px` : `${roundPrecise(x.value)}fr`)).join(' ')
+  return { ...layout, gridTemplate: `${fmt(colT)} / ${fmt(rowT)}` }
+}
+
+/** 四舍五入到 4 位小数，避免 fr 权重积累出超长小数串 */
+function roundPrecise(n: number): number {
+  return Math.round(n * 10000) / 10000
+}
+
 /** 应用单个格子的缩放（左上角不动，只改宽高） */
 export function scaleCellRect(cell: CellRect, scale?: CellSizeScale): CellRect {
   if (!scale) return cell
