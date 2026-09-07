@@ -69,6 +69,10 @@ export interface TextItem {
   letterSpacing: number
   /** 对齐方式（相对文字块中心） */
   align: 'left' | 'center' | 'right'
+  /** 水平缩放（变形，默认 1，相对文字中心） */
+  scaleX?: number
+  /** 垂直缩放（变形，默认 1，相对文字中心） */
+  scaleY?: number
   /** 下划线 */
   underline: boolean
   /** 描边颜色（strokeWidth 为 0 时不描边） */

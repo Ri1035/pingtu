@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { ArrowDown, ArrowUp, Download, ImagePlus, Loader2, Trash2 } from 'lucide-react'
 import { Field, NumberInput, Segmented, Slider, Switch } from './ui/Controls'
 import { TextPanel, type TextStore } from './TextPanel'
 import { WatermarkPanel } from './WatermarkPanel'
+import { AssetPanel } from './AssetPanel'
 import { useI18n } from '../i18n'
 import type { LongStore } from '../hooks/useLongCollage'
+import type { AssetStore } from '../hooks/useAssets'
 import { LONG_SLICE_HEIGHT, LONG_WIDTH_PRESETS } from '../lib/longCollage'
 import { FORMAT_LABEL } from '../lib/export'
 import type { ExportFormat } from '../types'
@@ -12,6 +14,10 @@ import { formatBytes } from '../lib/image'
 
 interface Props {
   store: LongStore
+  assetStore: AssetStore
+  /** 当前选中文字 id（与长图预览画布共享同一选中态） */
+  selectedTextId: string | null
+  onSelectText: (id: string | null) => void
   busy: boolean
   lastResult: { size: number; width: number; height: number } | null
   onExport: () => void
@@ -19,14 +25,18 @@ interface Props {
 
 const PRESET_BACKGROUNDS = ['#ffffff', '#f5f5f4', '#111827', '#0f172a', '#2563eb', '#fecdd3', '#d9f99d']
 
-export function LongCollagePanel({ store, busy, lastResult, onExport }: Props) {
+export function LongCollagePanel({ store, assetStore, selectedTextId, onSelectText, busy, lastResult, onExport }: Props) {
   const { t } = useI18n()
   const { photos, style, setStyle, texts, exportState, setExportState, addFiles, removePhoto, movePhoto, setNotice } = store
-  const [selectedTextId, setSelectedTextId] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const isWidthPreset = LONG_WIDTH_PRESETS.includes(style.width)
   const selectedText = texts.find((it) => it.id === selectedTextId) ?? null
+
+  /** 把素材库的图片追加到长拼图堆叠队列 */
+  const handleAddAsset = (file: File) => {
+    void addFiles([file])
+  }
 
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -136,7 +146,7 @@ export function LongCollagePanel({ store, busy, lastResult, onExport }: Props) {
       {/* —— 文字（复用主拼图） —— */}
       <section>
         <div className="section-title">{t('tabText')}</div>
-        <TextPanel store={store as TextStore} selectedTextId={selectedTextId} onSelectText={setSelectedTextId} />
+        <TextPanel store={store as TextStore} selectedTextId={selectedTextId} onSelectText={onSelectText} />
         {selectedText && (
           <>
             <Field label="X" value={`${Math.round(selectedText.x * 100)}%`}>
@@ -156,6 +166,14 @@ export function LongCollagePanel({ store, busy, lastResult, onExport }: Props) {
       <section>
         <div className="section-title">{t('tabWatermark')}</div>
         <WatermarkPanel store={store} />
+      </section>
+
+      <div className="divider" />
+
+      {/* —— 素材库（复用主拼图，追加进长图队列） —— */}
+      <section>
+        <div className="section-title">{t('tabAssets')}</div>
+        <AssetPanel assetStore={assetStore} onAddFileToCollage={handleAddAsset} />
       </section>
 
       <div className="divider" />

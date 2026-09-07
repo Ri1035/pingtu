@@ -87,6 +87,15 @@ export function useLongCollage() {
   }, [])
 
   // —— 附加文字 ——
+  // 预览视口中心（0~1），新文字默认落在「右侧当前停靠的那一段」中间，便于就地排版而非跨图居中
+  const viewYRef = useRef(0.5)
+  const [viewY, setViewYState] = useState(0.5)
+  const setViewY = useCallback((v: number) => {
+    const next = Math.min(1, Math.max(0, v))
+    viewYRef.current = next
+    setViewYState(next)
+  }, [])
+
   const textSeedRef = useRef(0)
   const addText = useCallback((partial?: Partial<TextItem>): TextItem => {
     textSeedRef.current += 1
@@ -110,8 +119,10 @@ export function useLongCollage() {
       shadowOffsetX: 0,
       shadowOffsetY: 0,
       opacity: 1,
-      x: 0.35,
-      y: 0.5,
+      scaleX: 1,
+      scaleY: 1,
+      x: 0.5,
+      y: viewYRef.current ?? 0.5,
       ...partial,
     }
     setTexts((prev) => [...prev, item])
@@ -152,6 +163,8 @@ export function useLongCollage() {
     addText,
     updateText,
     removeText,
+    viewY,
+    setViewY,
     watermark,
     setWatermark,
     watermarkImage,

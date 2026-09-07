@@ -9,7 +9,7 @@ type Value = string | ((n: number) => string)
 const zh: Record<string, Value> = {
   appTitle: '拼图编辑器',
   appTagline: '本地处理 · 图片不上传',
-  appVersion: 'v1.7.0',
+  appVersion: 'v1.8.0',
 
   tabLayout: '布局',
   tabStyle: '样式',
@@ -43,7 +43,10 @@ const zh: Record<string, Value> = {
   longTotalHeight: '总高',
   longExportWidth: '导出宽度',
   longExportSliceEmpty: '请先上传至少一张图片',
-  longTextPositionHint: '长图没有画布拖拽，X/Y 滑条用于垂直/水平定位该文字',
+  longTextPositionHint: '可在画布直接拖动文字；X/Y 滑条用于微调精确定位',
+  longTextDragHint: '点击 / 拖动文字可调整位置',
+  textDeformX: '水平变形',
+  textDeformY: '垂直变形',
 
   langSwitch: 'English',
   newProject: '新建',
@@ -265,7 +268,7 @@ const zh: Record<string, Value> = {
 const en: Record<string, Value> = {
   appTitle: 'Collage Editor',
   appTagline: 'Runs locally · never uploaded',
-  appVersion: 'v1.7.0',
+  appVersion: 'v1.8.0',
 
   tabLayout: 'Layout',
   tabStyle: 'Style',
@@ -299,7 +302,10 @@ const en: Record<string, Value> = {
   longTotalHeight: 'Total height',
   longExportWidth: 'Export width',
   longExportSliceEmpty: 'Upload at least one image',
-  longTextPositionHint: 'Long collage has no canvas drag; use X/Y sliders to position this text',
+  longTextPositionHint: 'Drag the text on the canvas, or fine-tune with the X/Y sliders',
+  longTextDragHint: 'Click / drag any text to move it',
+  textDeformX: 'Deform X',
+  textDeformY: 'Deform Y',
 
   langSwitch: '中文',
   newProject: 'New',

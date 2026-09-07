@@ -222,10 +222,10 @@ export function CollageStage({ store, onPickFiles, onFilesDropped, selectedTextI
         maxW = Math.max(maxW, w)
       }
       const lineHeight = fontSize * (text.lineHeight ?? 1.25)
-      const h = lines.length * lineHeight
+      const h = lines.length * lineHeight * (text.scaleY ?? 1)
       const cx = text.x * preview.w
       const cy = text.y * preview.h
-      return { x: cx - maxW / 2, y: cy - h / 2, w: maxW, h }
+      return { x: cx - (maxW * (text.scaleX ?? 1)) / 2, y: cy - h / 2, w: maxW * (text.scaleX ?? 1), h }
     },
     [preview],
   )

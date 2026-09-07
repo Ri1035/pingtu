@@ -1996,6 +1996,13 @@ input, select, textarea {
   font-size: 12px;
   color: var(--muted);
 }
+.long-stage-hint {
+  flex: 1;
+  text-align: right;
+  color: var(--muted);
+  opacity: 0.9;
+}
+.long-preview:active { cursor: grabbing; }
 
 /* 长图顺序列表 */
 .long-stack {

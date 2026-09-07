@@ -385,6 +385,10 @@ export function drawText(ctx: CanvasRenderingContext2D, text: TextItem, width: n
 
   ctx.translate(cx, cy)
   if (text.rotation !== 0) ctx.rotate((text.rotation * Math.PI) / 180)
+  // 变形：以文字中心为原点做非等比缩放（水平/垂直）
+  const sx = text.scaleX ?? 1
+  const sy = text.scaleY ?? 1
+  if (sx !== 1 || sy !== 1) ctx.scale(sx, sy)
 
   ctx.globalAlpha = Math.min(1, Math.max(0, text.opacity ?? 1))
 

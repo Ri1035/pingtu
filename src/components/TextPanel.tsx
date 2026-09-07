@@ -352,6 +352,26 @@ export function TextPanel({ store, selectedTextId, onSelectText }: Props) {
             </>
           )}
 
+          {/* 变形（自由缩放） */}
+          <Field label={t('textDeformX')} value={`${Math.round((selected.scaleX ?? 1) * 100)}%`}>
+            <Slider
+              value={Math.round((selected.scaleX ?? 1) * 100)}
+              min={40}
+              max={250}
+              step={1}
+              onChange={(v) => updateText(selected.id, { scaleX: v / 100 })}
+            />
+          </Field>
+          <Field label={t('textDeformY')} value={`${Math.round((selected.scaleY ?? 1) * 100)}%`}>
+            <Slider
+              value={Math.round((selected.scaleY ?? 1) * 100)}
+              min={40}
+              max={250}
+              step={1}
+              onChange={(v) => updateText(selected.id, { scaleY: v / 100 })}
+            />
+          </Field>
+
           <button
             type="button"
             className="btn btn-danger"

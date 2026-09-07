@@ -5,6 +5,24 @@
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本（Semantic Versioning）](https://semver.org/lang/zh-CN/)。
 
+## [1.8.0] - 2026-09-07
+
+### Added
+- **长拼图可用素材库**：长拼图面板内新增「素材库」区块（复用主拼图 AssetPanel），选中素材点加号即可把图片追加进长图堆叠队列；叠加层按钮自动隐藏（长拼图无浮层）。
+- **文字可在画布直接拖动定位**：长拼图预览画布支持点击/拖动文字实时调整位置（命中测试与绘制同口径，含变形缩放），选中显示虚线框；侧栏 X/Y 滑条与画布拖动共享同一选中态，用于微调精确定位。
+- **新文字默认落在当前段中间**：预览竖向滚动时，侧栏把视口中心比例上报给状态；点「加文字」时新文字默认落在右侧当前停靠的那一段中间，避免跨图居中难以调整。
+- **文字变形（非等比缩放）**：文字面板新增「水平变形 / 垂直变形」滑条（40%~250%），以文字中心为原点做非等比缩放；主拼图与长拼图同时生效，描边 / 阴影 / 旋转继续可用。
+
+### Changed
+- `TextItem` 新增可选 `scaleX` / `scaleY`；`render.drawText` 在旋转后按中心做缩放。
+- 抽取 `TextStore` / `WatermarkStore` 子集后，长拼图继续复用现有文字 / 水印面板。
+- `LongStage.tsx` 从静态预览升级为可交互画布（滚动上报视口 + 文字命中拖拽 + 选中虚线框）。
+- 版本号从 `v1.7.0` 升级到 `v1.8.0`。
+
+### Notes
+- 文字固定为 `scaleX=scaleY=1`，命中测试与绘制均计入缩放，保证拖拽命中一致。
+- npm run typecheck / build 通过（gzip ≈ 94.5 KB）。
+
 ## [1.7.0] - 2026-09-07
 
 ### Added
@@ -206,6 +224,7 @@
 ### Notes
 - 以 [esmcelroy/photo-grid-collage-maker](https://github.com/esmcelroy/photo-grid-collage-maker) 为主要架构参考，另调研并融合 3 个开源拼图项目的优点，详见 `README.md`。
 
+[1.8.0]: https://github.com/Ri1035/pingtu/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/Ri1035/pingtu/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/Ri1035/pingtu/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/Ri1035/pingtu/compare/v1.5.0...v1.6.0

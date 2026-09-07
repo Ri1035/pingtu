@@ -277,7 +277,17 @@ function Editor() {
           </nav>
 
           <div className="sidebar-body">
-            {tab === 'long' && <LongCollagePanel store={longStore} busy={longBusy} lastResult={longResult} onExport={handleLongExport} />}
+            {tab === 'long' && (
+                <LongCollagePanel
+                  store={longStore}
+                  assetStore={assetStore}
+                  selectedTextId={selectedTextId}
+                  onSelectText={setSelectedTextId}
+                  busy={longBusy}
+                  lastResult={longResult}
+                  onExport={handleLongExport}
+                />
+              )}
             {tab === 'layout' && <LayoutPanel store={store} />}
             {tab === 'style' && (
               <>
@@ -301,7 +311,7 @@ function Editor() {
 
         <main className="stage">
           {tab === 'long' ? (
-            <LongStage store={longStore} />
+            <LongStage store={longStore} selectedTextId={selectedTextId} onSelectText={setSelectedTextId} />
           ) : (
             <>
               <CollageStage
