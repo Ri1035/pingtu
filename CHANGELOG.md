@@ -5,6 +5,18 @@
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本（Semantic Versioning）](https://semver.org/lang/zh-CN/)。
 
+## [1.11.0] - 2026-09-07
+
+### Added
+- **扩充布局模板库**：`official-layouts.ts` 新增 62 套自定义模板，此前 145 套 → 207 套；1~16 张每个数量均补充了新模板（1 张新增拉宽/拉长、2~16 张各新增 4 套），覆盖竖排、横排、宫格、左右/上下分区的更多组合。所有新增矩阵均通过既有 `validateLayout` 校验（格子数、矩形合并、行等长全部合法）。
+
+### Changed
+- 版本号从 `v1.10.0` 升级到 `v1.11.0`。
+
+### Notes
+- 模板为自定义设计（非 mergeimage 原始数据），在文件内以 `// —— 自定义新增 ——` 注释区分。
+- `npm run typecheck / build` 通过（gzip ≈ 96.5 KB）。
+
 ## [1.10.0] - 2026-09-07
 
 ### Added
