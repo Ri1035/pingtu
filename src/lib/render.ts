@@ -350,7 +350,7 @@ function drawPlaceholder(
  * 在画布上绘制一条文字图层。
  * 文字按「设计像素」定位：x/y 是相对画布的比例，fontSize 以 BASE_WIDTH 为基准缩放。
  */
-function drawText(ctx: CanvasRenderingContext2D, text: TextItem, width: number, height: number): void {
+export function drawText(ctx: CanvasRenderingContext2D, text: TextItem, width: number, height: number): void {
   const content = text.content
   if (!content) return
   const scale = width / BASE_WIDTH
@@ -447,7 +447,7 @@ function drawTextMark(
  * 绘制水印（叠加在拼图最上层，导出同样生效）。
  * 支持文字 / 图片两种内容，平铺 / 单个两种排布。
  */
-function drawWatermark(
+export function drawWatermark(
   ctx: CanvasRenderingContext2D,
   wm: WatermarkConfig,
   image: HTMLImageElement | null,

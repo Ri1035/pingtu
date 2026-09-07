@@ -5,6 +5,27 @@
 格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本（Semantic Versioning）](https://semver.org/lang/zh-CN/)。
 
+## [1.7.0] - 2026-09-07
+
+### Added
+- **长拼图模块（电商详情页 / 公众号长图）**：侧边栏顶部新增独立 Tab「长拼图」，与「布局 / 样式 / 文字 / 素材库」并列；长图模式完全独立于主拼图逻辑，互不干扰：
+  - **纵向堆叠**：图片按上传顺序（可上下调整、移除）从上到下堆叠成一张超长图，固定画布宽度（预设 720 / 750 / 800 / 1080 / 1200，或自定义 320~4096）。
+  - **模糊边缘（交界平滑过渡）**：相邻两张图交界处重叠一段高度，用纵向 alpha 渐变做交叉淡出/淡入过渡，值越大衔接越柔和，0 为硬拼接；预览与导出走同一渲染管线，所见即所得。
+  - **附加文字 / 水印**：完整复用主拼图已有的「文字」与「水印」面板能力（TextPanel / WatermarkPanel 改为接收 `TextStore` / `WatermarkStore` 子集，两模式共享）；因无画布拖拽，文字提供 X/Y 滑条定位。
+  - **切片导出**：超长整图按每段高度（可设 1000~10000px）切成多段下载，便于分屏上传到平台；支持格式 / 质量 / 导出宽度，透明背景需 PNG / WebP。
+  - **顶部标题**：长图顶部可选加一行居中加粗标题（文字 / 颜色 / 字号）。
+- **头像加载优化**：`public/avatar.png` 由 2048×2048(2.8MB) 压缩为 160×160(≈27KB)，加载提速约百倍。
+
+### Changed
+- 新增 `lib/longCollage.ts`（布局 `layoutLong` + 渲染 `drawLongCollage` + 切片导出 `exportLongImage`）与 `hooks/useLongCollage.ts`（独立长图状态管理）。
+- `lib/render.ts` 导出 `drawText` / `drawWatermark` 供长图管线复用；
+- `App.tsx` 新增 `long` Tab，切换即整体切换到长拼图工作台（LongStage + LongCollagePanel）。
+- 版本号从 `v1.6.1` 升级到 `v1.7.0`。
+
+### Notes
+- 主拼图所有既有逻辑未改动，仅在 `Editor` 内按 Tab 分流渲染。
+- npm run typecheck / build 通过（gzip ≈ 93 KB）。
+
 ## [1.6.1] - 2026-09-03
 
 ### Changed
@@ -185,6 +206,7 @@
 ### Notes
 - 以 [esmcelroy/photo-grid-collage-maker](https://github.com/esmcelroy/photo-grid-collage-maker) 为主要架构参考，另调研并融合 3 个开源拼图项目的优点，详见 `README.md`。
 
+[1.7.0]: https://github.com/Ri1035/pingtu/compare/v1.6.1...v1.7.0
 [1.6.1]: https://github.com/Ri1035/pingtu/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/Ri1035/pingtu/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/Ri1035/pingtu/compare/v1.4.0...v1.5.0

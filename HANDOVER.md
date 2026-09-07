@@ -16,7 +16,7 @@
 | GitHub 仓库 | https://github.com/Ri1035/pingtu （分支 `main`，公开） |
 | 线上站点 | https://pingtu-ch8.pages.dev |
 | Cloudflare | 项目名 `pingtu`，账号 Koka2996978242@outlook.com，account id `f1b789793774805c136bd7dfc86febd4` |
-| 当前版本 | **v1.6.1**（package.json `"version": "1.6.1"`，tag `v1.6.1`） |
+| 当前版本 | **v1.7.0**（package.json `"version": "1.7.0"`，tag `v1.7.0`） |
 
 GitHub / Cloudflare 的 token **不存在仓库中**（均在 .gitignore 的 `.env*` 保护之外另行保管），
 部署时通过环境变量 `CLOUDFLARE_API_TOKEN` 注入。
@@ -36,6 +36,7 @@ GitHub / Cloudflare 的 token **不存在仓库中**（均在 .gitignore 的 `.e
 src/
 ├── App.tsx · main.tsx · i18n.ts · types.ts · index.css
 ├── hooks/useCollage.ts        # 拼图状态（photos/texts/style/exportOptions/transforms）
+├── hooks/useLongCollage.ts    # 长拼图状态（独立于 useCollage，复用解码/水印/文字）
 ├── hooks/useAssets.ts         # 素材库状态
 ├── lib/
 │   ├── official-layouts.ts    # 官方布局矩阵（145 套，权威数据源）
@@ -44,6 +45,8 @@ src/
 │   ├── render.ts              # Canvas 渲染引擎（BASE_WIDTH=1600 设计基准）
 │   │                          #   · effectiveStyle() 无缝模式强制 0 间距
 │   │                          #   · drawPhoto 统一平移数学 cx = centerX + offsetX×(cell.w−dw)
+│   │                          #   · 导出 drawText / drawWatermark 供长拼图复用
+│   ├── longCollage.ts         # 长拼图引擎：纵向堆叠 layoutLong + 模糊边缘交叉渐变 drawLongCollage + 切片导出 exportLongImage
 │   ├── export.ts              # 导出 PNG/JPEG/WebP（复用 drawCollage）
 │   ├── image.ts               # 文件解码/缩略图
 │   ├── fonts.ts               # 系统字体探测（Canvas 测量）+ Local Font Access API 读取本机字体
@@ -52,19 +55,22 @@ src/
 │   └── stickers.ts            # 内置 emoji 贴纸库
 └── components/
     ├── CollageStage.tsx       # 画布：hover 工具条（延迟消失）/ 选中控制条 / 缩放平移 / 文字拖拽
+    ├── LongStage.tsx          # 长拼图预览画布（drawLongCollage 渲染，可纵向滚动 + 拖拽上传）
+    ├── LongCollagePanel.tsx   # 长拼图面板：上传/排序/宽度/模糊边缘/标题/背景/文字/水印/切片导出
     ├── LayoutPanel / StylePanel / TextPanel / ExportPanel / PhotoTray / AssetPanel / AssetEditor / TopBar
     ├── WatermarkPanel.tsx     # 水印面板（类型 / 排布 / 模板 / 微调）
     ├── AboutModal.tsx         # 开发者信息弹窗（#about 分享链接）
     └── ui/Controls.tsx        # Field/Slider/Segmented/Switch/NumberInput
 ```
 
-## 4. 已实现功能（截至 v1.6.1）
+## 4. 已实现功能（截至 v1.7.0）
 
 - **基础**：1~16 张图、145 布局、画布比例、边距/间距/圆角/背景/透明、URL 同步 `?count=2&layout=0`、中英双语、localStorage 持久化
 - **读取本机字体（v1.6.0）**：文字面板可「读取本机字体」——优先 Local Font Access API 枚举本机全部字体，不支持时回退 Canvas 测量探测
 - **水印（v1.6.0）**：拼图最上层叠加水印（预览/导出一致），文字/图片两种类型、平铺/单个两种排布，5 套内置模板 + 旋转/不透明度/间距等微调
 - **开发者信息页（v1.6.0）**：顶栏「关于」弹窗（开发者/联系方式/技术栈/协议），可复制带 `#about` 锚点的分享链接，打开链接自动唤起该页
 - **导航合并（v1.6.1）**：样式/导出合并、文字/水印合并，页签精简为 4 个；开发者信息页移除技术栈、姓名改 KOKA、头像改用 `public/avatar.png`
+- **长拼图（v1.7.0，电商详情页/公众号长图）**：侧边栏顶部独立 Tab「长拼图」，完全独立于主拼图；图片按顺序纵向堆叠成超长图（宽度 720~4096 可选），交界「模糊边缘」用纵向 alpha 渐变做交叉过渡，文字/水印复用主拼图面板，超长整图按段切片导出；头像压缩至约 27KB
 - **图片**：点击多选批量、拖拽/粘贴上传（画布 + 托盘）、拖拽排序/点击交换、单张旋转/镜像/填充切换
 - **文字**：多图层文字叠加、系统字体选择、字号/颜色/粗斜/旋转、行距/字间距/对齐/下划线/描边/阴影/不透明度、画布拖拽/选中/删除
 - **浮层素材（v1.3.0 + v1.4.0 + v1.5.0）**：素材库「添加为浮层」叠加到拼图上；拖拽移动 + 大小(5%~800%)/旋转/不透明度滑条 + 滚轮缩放；v1.5.0 起支持给浮层加边框（宽度/颜色/实线·虚线·点线·双线）
@@ -179,6 +185,7 @@ node scripts/smoke-quick.mjs      # 5 大页签快速回归（连 4173）
 | v1.5.0 | 5024e4a | 浮层素材加边框 + 边框样式(实线/虚线/点线/双线) + 自定义画布大小 + 单格框体调整与层级浮起 |
 | v1.6.0 | 86b6270 | 读取本机字体(Local Font Access API) + 水印(文字/图片、5 套模板) + 开发者信息页(#about 分享链接) |
 | v1.6.1 | 1d028f1 | 样式/导出、文字/水印页签合并；开发者信息页移除技术栈、姓名 KOKA、头像改用 avatar.png |
+| v1.7.0 | 待填 | 长拼图模块（纵向堆叠 + 模糊边缘 + 文字/水印复用 + 切片导出）+ 头像压缩优化 |
 
 ## 7. 部署到 Cloudflare Pages
 

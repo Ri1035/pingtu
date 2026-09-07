@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { LayoutGrid, SlidersHorizontal, Type, Library } from 'lucide-react'
+import { LayoutGrid, SlidersHorizontal, Type, Library, Rows3 } from 'lucide-react'
 import { I18nContext, LANG_STORAGE_KEY, makeI18n, useI18n, type Lang } from './i18n'
 import { useCollage } from './hooks/useCollage'
 import { useAssets } from './hooks/useAssets'
+import { useLongCollage } from './hooks/useLongCollage'
 import { TopBar } from './components/TopBar'
 import { LayoutPanel } from './components/LayoutPanel'
 import { StylePanel } from './components/StylePanel'
@@ -13,10 +14,13 @@ import { PhotoTray } from './components/PhotoTray'
 import { AssetPanel } from './components/AssetPanel'
 import { WatermarkPanel } from './components/WatermarkPanel'
 import { AboutModal } from './components/AboutModal'
+import { LongStage } from './components/LongStage'
+import { LongCollagePanel } from './components/LongCollagePanel'
 import { buildFilename, downloadBlob, renderToBlob, supportsWebp } from './lib/export'
+import { exportLongImage } from './lib/longCollage'
 import { ACCEPT_ATTR } from './lib/image'
 
-type Tab = 'layout' | 'style' | 'text' | 'assets'
+type Tab = 'long' | 'layout' | 'style' | 'text' | 'assets'
 
 export function App() {
   const [lang, setLangState] = useState<Lang>(() => {
@@ -55,11 +59,14 @@ function Editor() {
   const { t, lang, setLang } = useI18n()
   const store = useCollage()
   const assetStore = useAssets()
+  const longStore = useLongCollage()
 
   const [tab, setTab] = useState<Tab>('layout')
   const [busy, setBusy] = useState(false)
+  const [longBusy, setLongBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [lastResult, setLastResult] = useState<{ size: number; width: number; height: number } | null>(null)
+  const [longResult, setLongResult] = useState<{ size: number; width: number; height: number } | null>(null)
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
 
@@ -154,11 +161,41 @@ function Editor() {
     }
   }, [store, showToast, t])
 
+  const handleLongExport = useCallback(async () => {
+    const { photos, scene, exportState } = longStore
+    if (photos.length === 0) return
+    setLongBusy(true)
+    try {
+      let options = exportState
+      if (options.format === 'webp' && !(await supportsWebp())) {
+        showToast(t('unsupportedWebp'))
+        options = { ...options, format: 'png' }
+      }
+      const parts = await exportLongImage(scene, options)
+      const d = new Date()
+      const pad = (n: number) => String(n).padStart(2, '0')
+      const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`
+      const ext = options.format === 'jpeg' ? 'jpg' : options.format
+      parts.forEach((part) => {
+        const suffix = parts.length > 1 ? `_p${part.part}of${part.total}` : ''
+        downloadBlob(part.blob, `long-collage-${part.width}w-${stamp}${suffix}.${ext}`)
+      })
+      const first = parts[0]
+      setLongResult({ size: parts.reduce((sum, p) => sum + p.blob.size, 0), width: first.width, height: first.height })
+    } catch (error) {
+      showToast(`${t('exportFailed')}：${error instanceof Error ? error.message : ''}`)
+    } finally {
+      setLongBusy(false)
+    }
+  }, [longStore, showToast, t])
+
   const handleReset = useCallback(() => {
     store.clearAll()
+    longStore.clearAll()
     setLastResult(null)
+    setLongResult(null)
     setSelectedTextId(null)
-  }, [store])
+  }, [store, longStore])
 
   const tabs: { key: Tab; label: string; icon: typeof LayoutGrid }[] = [
     { key: 'layout', label: t('tabLayout'), icon: LayoutGrid },
@@ -212,6 +249,16 @@ function Editor() {
       <div className="app-body">
         <aside className="sidebar">
           <nav className="sidebar-tabs">
+            <button
+              type="button"
+              className={`sidebar-tab is-long${tab === 'long' ? ' is-active' : ''}`}
+              onClick={() => setTab('long')}
+              aria-selected={tab === 'long'}
+            >
+              <Rows3 size={14} />
+              {t('tabLong')}
+            </button>
+            <div className="sidebar-group-divider" />
             {tabs.map((item) => {
               const Icon = item.icon
               return (
@@ -230,6 +277,7 @@ function Editor() {
           </nav>
 
           <div className="sidebar-body">
+            {tab === 'long' && <LongCollagePanel store={longStore} busy={longBusy} lastResult={longResult} onExport={handleLongExport} />}
             {tab === 'layout' && <LayoutPanel store={store} />}
             {tab === 'style' && (
               <>
@@ -252,14 +300,20 @@ function Editor() {
         </aside>
 
         <main className="stage">
-          <CollageStage
-            store={store}
-            onPickFiles={openPicker}
-            onFilesDropped={handleDropped}
-            selectedTextId={selectedTextId}
-            onSelectText={setSelectedTextId}
-          />
-          <PhotoTray store={store} onPickFiles={() => openPicker()} onFilesDropped={handleDropped} />
+          {tab === 'long' ? (
+            <LongStage store={longStore} />
+          ) : (
+            <>
+              <CollageStage
+                store={store}
+                onPickFiles={openPicker}
+                onFilesDropped={handleDropped}
+                selectedTextId={selectedTextId}
+                onSelectText={setSelectedTextId}
+              />
+              <PhotoTray store={store} onPickFiles={() => openPicker()} onFilesDropped={handleDropped} />
+            </>
+          )}
         </main>
       </div>
 

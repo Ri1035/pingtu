@@ -2,11 +2,19 @@ import { useEffect, useState } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { Field, Slider, Segmented, Switch } from './ui/Controls'
 import { useI18n } from '../i18n'
-import type { CollageStore } from '../hooks/useCollage'
+import type { TextItem } from '../types'
 import { detectFonts, queryLocalFonts, supportsLocalFontAccess, type FontInfo } from '../lib/fonts'
 
+/** 文字面板所需的 store 子集：主拼图与长拼图都满足 */
+export interface TextStore {
+  texts: TextItem[]
+  addText: (partial?: Partial<TextItem>) => TextItem
+  updateText: (id: string, patch: Partial<TextItem>) => void
+  removeText: (id: string) => void
+}
+
 interface Props {
-  store: CollageStore
+  store: TextStore
   selectedTextId: string | null
   onSelectText: (id: string | null) => void
 }

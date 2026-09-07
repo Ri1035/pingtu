@@ -1932,6 +1932,139 @@ input, select, textarea {
 .about-developer-meta strong { font-size: 14px; }
 .about-developer-meta span { font-size: 12.5px; color: var(--muted); }
 
+/* ===== 17. 长拼图（电商详情页 / 公众号长图）===== */
+.sidebar-tab.is-long {
+  color: var(--text-2);
+  font-weight: 650;
+}
+.sidebar-tab.is-long.is-active {
+  color: var(--accent);
+}
+.sidebar-group-divider {
+  flex: 0 0 auto;
+  width: 1px;
+  align-self: stretch;
+  margin: 9px 4px;
+  background: var(--border);
+}
+
+.long-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  background: var(--bg);
+}
+.long-stage.is-dropping::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-lg);
+  background: rgba(37, 99, 235, 0.06);
+  pointer-events: none;
+}
+.long-preview {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  border-radius: 2px;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.12);
+  background: #fff;
+}
+.long-stage-bar {
+  position: sticky;
+  bottom: 0;
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 长图顺序列表 */
+.long-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.long-stack-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+.long-stack-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #fff;
+  flex: 0 0 auto;
+}
+.long-stack-order {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.long-stack-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.long-stack-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+.long-stack-actions button {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.13s, background 0.13s;
+}
+.long-stack-actions button:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.long-stack-actions button:disabled { opacity: 0.35; cursor: not-allowed; }
+
 .about-links { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .about-link {

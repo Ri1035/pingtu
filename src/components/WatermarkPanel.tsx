@@ -2,12 +2,20 @@ import { useEffect, useRef, useState } from 'react'
 import { CornerDownRight, Grid3x3, Image as ImageIcon, ImagePlus, LayoutGrid, Type } from 'lucide-react'
 import { Field, Segmented, Slider, Switch } from './ui/Controls'
 import { useI18n } from '../i18n'
-import type { CollageStore } from '../hooks/useCollage'
+import type { WatermarkConfig } from '../types'
 import { detectFonts, type FontInfo } from '../lib/fonts'
 import { WATERMARK_TEMPLATES } from '../lib/watermark'
 
+/** 水印面板所需的 store 子集：主拼图与长拼图都满足 */
+export interface WatermarkStore {
+  watermark: WatermarkConfig
+  setWatermark: (patch: Partial<WatermarkConfig>) => void
+  watermarkImage: HTMLImageElement | null
+  setWatermarkImage: (img: HTMLImageElement | null) => void
+}
+
 interface Props {
-  store: CollageStore
+  store: WatermarkStore
 }
 
 const PRESET_WATERMARK_COLORS = ['#111827', '#ffffff', '#6b7280', '#dc2626', '#2563eb']
