@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 interface FieldProps {
   label: string
@@ -98,18 +98,36 @@ interface NumberInputProps {
   onChange: (value: number) => void
 }
 
+/**
+ * 数字输入框。
+ * 编辑期间用本地草稿字符串承接键盘输入，允许清空 / 逐位输入；
+ * 仅在「失焦 / 回车」时才取整并夹到 [min, max]。
+ * 避免旧实现「每敲一个键就夹取一次」——清空会瞬间被夹到最小值，
+ * 导致没法自由输入（如想输 1200 却被拼成 1002 → 10020 → 8000）。
+ */
 export function NumberInput({ value, min, max, onChange }: NumberInputProps) {
+  const [draft, setDraft] = useState<string | null>(null)
+
+  const commit = (raw: string) => {
+    setDraft(null)
+    const next = Number(raw)
+    // 空值 / 非法输入：放弃本次编辑，显示回原值
+    if (raw.trim() === '' || !Number.isFinite(next)) return
+    onChange(Math.min(max, Math.max(min, Math.round(next))))
+  }
+
   return (
     <input
       className="text-input"
       type="number"
-      value={value}
+      value={draft ?? String(value)}
       min={min}
       max={max}
-      onChange={(e) => {
-        const next = Number(e.target.value)
-        if (!Number.isFinite(next)) return
-        onChange(Math.min(max, Math.max(min, Math.round(next))))
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={(e) => commit(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur()
+        else if (e.key === 'Escape') setDraft(null)
       }}
     />
   )

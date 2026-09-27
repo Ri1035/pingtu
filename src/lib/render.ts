@@ -89,6 +89,26 @@ export function computeCanvasSize(scene: CollageScene, width: number): { width: 
   return { width: Math.round(width), height: Math.max(1, Math.round(width / ratio)) }
 }
 
+/**
+ * 导出用的画布尺寸。
+ *  - `ratio === 'custom'`：直接采用用户填写的自定义宽高（像素），实现「设多少就导出多少」，
+ *    此时忽略导出宽度选项（自定义尺寸已给出确定的宽与高，无需再按比例推算）。
+ *  - 其他比例：沿用「导出宽度 × 比例推算高度」的旧口径。
+ */
+export function computeExportSize(
+  scene: CollageScene,
+  fallbackWidth: number,
+): { width: number; height: number } {
+  const { style } = scene
+  if (style.ratio === 'custom') {
+    return {
+      width: Math.max(1, Math.round(style.customWidth || 1600)),
+      height: Math.max(1, Math.round(style.customHeight || 900)),
+    }
+  }
+  return computeCanvasSize(scene, fallbackWidth)
+}
+
 /** 圆角矩形路径（不依赖 ctx.roundRect，兼容性更好） */
 export function roundRectPath(
   ctx: CanvasRenderingContext2D,

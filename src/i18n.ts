@@ -9,7 +9,7 @@ type Value = string | ((n: number) => string)
 const zh: Record<string, Value> = {
   appTitle: '拼图编辑器',
   appTagline: '本地处理 · 图片不上传',
-  appVersion: 'v1.11.0',
+  appVersion: 'v1.12.0',
 
   tabLayout: '布局',
   tabStyle: '样式',
@@ -86,6 +86,7 @@ const zh: Record<string, Value> = {
   widthCustom: '自定义',
   outputSize: '输出尺寸',
   exportHint: '提高宽度可获得更清晰的成图，文件体积也会随之变大',
+  exportCustomCanvasHint: '画布比例已设为「自定义」，导出将直接采用你填写的自定义宽高，此项不生效',
   download: '下载图片',
   downloading: '正在生成…',
   lastExport: '上次导出',
@@ -280,7 +281,7 @@ const zh: Record<string, Value> = {
 const en: Record<string, Value> = {
   appTitle: 'Collage Editor',
   appTagline: 'Runs locally · never uploaded',
-  appVersion: 'v1.9.0',
+  appVersion: 'v1.12.0',
 
   tabLayout: 'Layout',
   tabStyle: 'Style',
@@ -357,6 +358,7 @@ const en: Record<string, Value> = {
   widthCustom: 'Custom',
   outputSize: 'Output size',
   exportHint: 'A larger width means a sharper image and a bigger file',
+  exportCustomCanvasHint: 'Canvas ratio is set to "Custom", so export uses your custom width & height directly; this option is ignored',
   download: 'Download',
   downloading: 'Rendering…',
   lastExport: 'Last export',
