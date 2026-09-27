@@ -7,13 +7,13 @@ interface Props {
 }
 
 /**
- * 开发者信息（分享前请按需修改下面的 DEVELOPER_INFO）。
+ * 开发者信息。
  */
 const DEVELOPER_INFO = {
   name: 'KOKA',
   role: '独立开发者',
   github: 'https://github.com/Ri1035',
-  email: 'your-email@example.com',
+  email: 'koka2996978242@outlook.com',
 }
 
 export function AboutModal({ onClose }: Props) {

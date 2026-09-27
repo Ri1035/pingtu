@@ -12,14 +12,23 @@
 
 | 项 | 值 |
 | --- | --- |
-| 本地源码 | `/data/user/work/pingtu` |
+| 本地源码 | `/workspace/pingtu` |
 | GitHub 仓库 | https://github.com/Ri1035/pingtu （分支 `main`，公开） |
 | 线上站点 | https://pingtu-ch8.pages.dev |
 | Cloudflare | 项目名 `pingtu`，账号 Koka2996978242@outlook.com，account id `f1b789793774805c136bd7dfc86febd4` |
+| 公开邮箱 | koka2996978242@outlook.com（开发者信息页展示，可对外） |
 | 当前版本 | **v1.11.0**（package.json `"version": "1.11.0"`，tag `v1.11.0`） |
 
-GitHub / Cloudflare 的 token **不存在仓库中**（均在 .gitignore 的 `.env*` 保护之外另行保管），
-部署时通过环境变量 `CLOUDFLARE_API_TOKEN` 注入。
+GitHub / Cloudflare 的 token **不存在仓库中**，另行存放在仓库之外的本地机密文件
+`/workspace/.secrets/pingtu.env`（权限 `600`，字段 `GITHUB_TOKEN` / `CLOUDFLARE_API_TOKEN`）；
+部署时通过环境变量注入，例如：
+
+```bash
+set -a; . /workspace/.secrets/pingtu.env; set +a
+CLOUDFLARE_API_TOKEN="$CLOUDFLARE_API_TOKEN" npx wrangler pages deploy dist --project-name pingtu
+```
+
+开发准则见 [docs/DEVELOPMENT_GUIDELINES.md](docs/DEVELOPMENT_GUIDELINES.md)。
 
 ## 3. 技术栈与核心架构
 
