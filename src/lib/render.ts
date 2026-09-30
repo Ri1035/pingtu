@@ -83,30 +83,14 @@ export function effectiveStyle(style: CanvasStyle): CanvasStyle {
   return { ...style, margin: 0, gap: 0, radius: 0 }
 }
 
-/** 由宽度推算画布尺寸（高度由比例决定） */
+/**
+ * 由宽度推算画布尺寸（高度由比例决定）。
+ * 注意：「画布比例 = 自定义」时，自定义宽高只用来确定**比例**（宽/高），
+ * 导出/预览的实际像素宽度仍由传入的 width 决定——这样「导出宽度」始终生效。
+ */
 export function computeCanvasSize(scene: CollageScene, width: number): { width: number; height: number } {
   const ratio = computeRatio(scene)
   return { width: Math.round(width), height: Math.max(1, Math.round(width / ratio)) }
-}
-
-/**
- * 导出用的画布尺寸。
- *  - `ratio === 'custom'`：直接采用用户填写的自定义宽高（像素），实现「设多少就导出多少」，
- *    此时忽略导出宽度选项（自定义尺寸已给出确定的宽与高，无需再按比例推算）。
- *  - 其他比例：沿用「导出宽度 × 比例推算高度」的旧口径。
- */
-export function computeExportSize(
-  scene: CollageScene,
-  fallbackWidth: number,
-): { width: number; height: number } {
-  const { style } = scene
-  if (style.ratio === 'custom') {
-    return {
-      width: Math.max(1, Math.round(style.customWidth || 1600)),
-      height: Math.max(1, Math.round(style.customHeight || 900)),
-    }
-  }
-  return computeCanvasSize(scene, fallbackWidth)
 }
 
 /** 圆角矩形路径（不依赖 ctx.roundRect，兼容性更好） */

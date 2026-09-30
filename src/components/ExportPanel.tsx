@@ -9,7 +9,7 @@ import {
   MIN_EXPORT_WIDTH,
 } from '../lib/export'
 import type { ExportFormat } from '../types'
-import { computeExportSize } from '../lib/render'
+import { computeCanvasSize } from '../lib/render'
 import { formatBytes } from '../lib/image'
 
 interface Props {
@@ -23,9 +23,8 @@ export function ExportPanel({ store, busy, lastResult, onExport }: Props) {
   const { t } = useI18n()
   const { exportOptions, setExportOptions, scene, filledCount } = store
 
-  const size = computeExportSize(scene, exportOptions.width)
+  const size = computeCanvasSize(scene, exportOptions.width)
   const isPreset = EXPORT_WIDTH_PRESETS.includes(exportOptions.width)
-  const isCustomCanvas = scene.style.ratio === 'custom'
 
   return (
     <>
@@ -86,7 +85,7 @@ export function ExportPanel({ store, busy, lastResult, onExport }: Props) {
           />
         </div>
         <div className="field-hint" style={{ marginTop: 8 }}>
-          {isCustomCanvas ? t('exportCustomCanvasHint') : t('exportHint')}
+          {t('exportHint')}
         </div>
       </Field>
 

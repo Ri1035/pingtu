@@ -1,5 +1,5 @@
 import type { ExportFormat, ExportOptions } from '../types'
-import { computeExportSize, drawCollage, type CollageScene } from './render'
+import { computeCanvasSize, drawCollage, type CollageScene } from './render'
 
 /** Canvas 导出支持的三种格式（与原站一致） */
 export const FORMAT_MIME: Record<ExportFormat, string> = {
@@ -65,8 +65,8 @@ export async function renderToBlob(scene: CollageScene, options: ExportOptions):
       ? { ...scene, style: { ...scene.style, transparent: false } }
       : scene
 
-  // 先定画布尺寸（自定义尺寸时直接采用用户填写的宽高），再一次性绘制
-  const { width, height } = computeExportSize(sceneForExport, options.width)
+  // 先定画布尺寸（导出宽度决定像素宽，高度由画布比例推算），再一次性绘制
+  const { width, height } = computeCanvasSize(sceneForExport, options.width)
 
   canvas.width = width
   canvas.height = height
